@@ -1,0 +1,73 @@
+---
+name: "识别图片"
+description: "批量识别 xlsx 内嵌的角色卡片截图，解析角色技能并按规则填表的完整方法与注意事项。当需要从 Excel 嵌入图片提取游戏配置（角色/技能/消耗/目标/伤害/buff）并写入配置页签时使用。"
+---
+
+# 识别图片 → 填配置表
+
+## 适用场景
+从 xlsx（如 config_v1.xlsx）内嵌的角色卡片图中批量识别角色与技能，按既定口径解析并填充 skill 类配置页签。
+
+## 流程
+
+### 1. 提取图片
+- xlsx 本质是 zip：解压后 `xl/media/*.png` 即嵌入图片。
+- 读 `xl/drawings/drawing1.xml` 锚点可知图片位置，**但锚点常与数据行错位（后补图未重排）**，不能按锚点对应角色，必须按图片内容（卡片标题名）识别。
+
+### 2. 读图识别
+- 用 Read 工具逐张读图（多模态直接识别）。
+- 关键信息模糊时（卡片标题、成本图标数字），用 Pillow 裁剪 + 3~4 倍 LANCZOS 放大后再读，不要猜。
+- 每张卡片提取：卡片标题名、技能名、成本图标（red/blue/green × 数量）、技能描述（目标、伤害点数、护甲点数、buff、连击、"随后"效果）。
+
+### 3. 解析口径（skill 页签 10 列）
+列：tag/角色/技能名/技能消耗/技能目标/生效/技能伤害/恢复护甲/给与buff/额外效果（调用子技能）
+
+- tag：`{heroTag}_skill{N}`；"随后…"子技能行 `{heroTag}_skill{N}_sub`。heroTag 取 hero 表 A 列英文 tag（小写开头、无空格、驼峰，如 giantAxeKnight）。
+- 角色：填**卡片标题名**（可能与 hero 表 B 列中文名不一致，以卡片为准，事前与用户确认）。
+- 技能消耗：`颜色,数量;颜色,数量`，如 `red,2;green,2`、`blue,4`。
+- 生效：攻击技=选择目标；辅助技（加 buff/回护甲）=自动；子技能行=null。
+- 技能伤害/恢复护甲：数字；无该效果写 0；不适用字段写字符串 `null`。
+- 攻击自带连击（"造成X点伤害,连击N"）→ 给与buff 列写 `连击+N`。
+- 给其他技能加连击（"为自身的X增加连击N"）→ 技能目标=自身，给与buff 写 `X_连击+N`（技能名下划线分隔，如 `横扫_连击+1`）。
+- "随后我方前排攻击力+3"类后续效果 → 建模为 _sub 子技能行：技能目标=受益方，给与buff=`攻击力+N`，其余 null/0。
+- AoE 目标按卡片原文照抄（如"近战目标及背后相邻单位"），不归纳不改写。
+
+### 4. 写入 xlsx（关键注意事项）
+**内嵌图片的 xlsx 禁用 openpyxl 保存——会丢图。必须走 zip 内 XML 直改：**
+
+1. 改前备份原文件到项目根目录（勿放 config/ 内，避免污染导出目录）。
+2. 字符串全部走 sharedStrings.xml：文本单元格 `<c r="A2" t="s"><v>idx</v></c>`；新字符串 append 到 `</sst>` 前，同步更新 `count`/`uniqueCount`；已存在的字符串复用原 idx，不重复添加。
+3. 数字单元格不带 t 属性：`<c r="G2"><v>7</v></c>`。
+4. 在目标 sheetN.xml 的 `<sheetData/>` 内插入 `<row r="N" spans="1:10">…</row>`（空表先写表头行），同步更新 `<dimension ref="A1:J18"/>`。
+5. 重写 zip：逐条目复制原内容，仅替换改动过的 XML，保持条目顺序与 DEFLATED 压缩。
+6. 写后验证四件套：
+   - `ET.fromstring` 校验改动过的 XML 格式合法；
+   - `zip.testzip()` 包完整性；
+   - openpyxl 读回逐行核对值；
+   - 对比 `xl/media/` 图片数量与其他页签内容未变。
+
+代码骨架（zip 直改）：
+
+```python
+zin = zipfile.ZipFile(src); zout = zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED)
+for item in zin.infolist():
+    data = zin.read(item.filename)
+    if item.filename == 'xl/worksheets/sheetN.xml': data = new_sheet.encode('utf-8')
+    elif item.filename == 'xl/sharedStrings.xml':    data = new_ss.encode('utf-8')
+    zout.writestr(item, data)   # 其余条目原样透传，图片才不会丢
+zout.close(); zin.close(); shutil.move(tmp, src)
+```
+
+### 5. 歧义处理
+图片与配置表冲突、效果无法归入现有列、命名规则不明确时，先整理问题用 AskUserQuestion 与用户确认，不要臆断填表。
+
+## 配置行示例（剑骑士官，含子技能）
+```
+swordKnightOfficer_skill1/剑骑士官/率军突击/red,2;green,2/近战目标/选择目标/7/0/null/swordKnightOfficer_skill1_sub
+swordKnightOfficer_skill2/剑骑士官/坚守战线/blue,4/自身及相邻单位/自动/0/3/null/null
+swordKnightOfficer_skill1_sub/剑骑士官/null/null/我方前排/null/0/0/攻击力+3/null
+```
+
+## 环境要点
+- Python 用 managed venv：`C:/Users/DELL/.workbuddy/binaries/python/envs/default/Scripts/python.exe`，openpyxl/Pillow 需先装入该 venv。
+- 读图用 Read 工具；裁剪放大用 Pillow。
