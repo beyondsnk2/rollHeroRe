@@ -1,2 +1,8 @@
 .workbuddy/
 *.backup.xlsx
+*.backup*.xlsx
+debug.log
+work/tank_img/
+work/mage_img/
+work/hero_img/
+config/新建 XLS 工作表.xls
