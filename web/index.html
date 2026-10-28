@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>选择出击阵容 Demo</title>
+<style>
+  :root {
+    --cell: 86px;
+    --bg: #14171c;
+    --panel: #1d2229;
+    --cell-bg: #232830;
+    --cell-border: #3a4150;
+    --text: #d8dde5;
+    --text-dim: #8a93a3;
+    --gold: #e8b339;
+    --green: #4caf78;
+    --red: #d9534f;
+    --blue: #4a90d9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px;
+    padding: 16px;
+  }
+  .hidden { display: none !important; }
+
+  /* ===== 选人界面 ===== */
+  #selectScreen { max-width: 1200px; margin: 0 auto; }
+  #selectScreen .title {
+    text-align: center; font-size: 24px; font-weight: bold;
+    color: var(--gold); margin: 8px 0 24px; letter-spacing: 4px;
+  }
+  #cardRow { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .card {
+    width: 186px; background: var(--panel);
+    border: 2px solid var(--cell-border); border-radius: 12px;
+    padding: 10px 10px 12px; cursor: pointer; user-select: none;
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform .12s, border-color .12s, box-shadow .12s;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card.selected {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(232,179,57,.35);
+    background: #2a2718;
+  }
+  .card.selected::before {
+    content: "✔"; position: absolute; top: 6px; left: 8px;
+    color: var(--gold); font-weight: bold; font-size: 16px;
+  }
+  .card.deny { animation: shake .3s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); } 75% { transform: translateX(4px); }
+  }
+  .card .cls { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
+  .card .hp {
+    position: absolute; top: 6px; right: 8px;
+    color: #ff6b6b; font-weight: bold; font-size: 15px;
+  }
+  .card .art { font-size: 52px; line-height: 1.15; margin: 6px 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
+  .card .name {
+    background: #2c3441; border: 1px solid var(--cell-border); border-radius: 6px;
+    padding: 2px 18px; font-weight: bold; margin-bottom: 8px;
+  }
+  .card .slots { display: flex; gap: 3px; margin-bottom: 8px; flex-wrap: wrap; justify-content: center; }
+  .gem {
+    width: 22px; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: bold; color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  }
+  .card .skillBlock { width: 100%; }
+  .card .skillBar {
+    width: 100%; background: #232830; border: 1px solid var(--cell-border);
+    border-radius: 6px; padding: 3px 6px; font-size: 12px;
+    display: flex; align-items: center; gap: 5px; margin-bottom: 4px;
+  }
+  .cost {
+    min-width: 15px; height: 15px; border-radius: 4px; padding: 0 2px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: bold; color: #fff; margin-left: auto;
+  }
+  .cost + .cost { margin-left: 3px; }
+  .card .desc { font-size: 11.5px; color: var(--text-dim); line-height: 1.55; text-align: center; min-height: 18px; margin-bottom: 6px; }
+  #selectHint { text-align: center; margin: 22px 0 14px; font-size: 16px; }
+  #selectHint b { color: var(--gold); }
+  #selectHint.full b { color: var(--green); }
+  #bottomBtns { display: flex; gap: 26px; justify-content: center; align-items: center; }
+  #bottomBtns button {
+    background: #2c3441; color: var(--text-dim);
+    border: 1px solid var(--cell-border); border-radius: 10px;
+    padding: 12px 26px; font-size: 16px; font-weight: bold; cursor: pointer;
+  }
+  #bottomBtns button:hover { background: #39424f; }
+  #btnFight { font-size: 19px; padding: 14px 44px; }
+  #btnFight.ready {
+    background: #4a3d14; color: var(--gold);
+    border-color: var(--gold); box-shadow: 0 0 10px rgba(232,179,57,.4);
+  }
+  #btnFight.ready:hover { background: #5c4c1a; }
+
+  /* ===== 地图界面（原样式）===== */
+  header {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--panel); border: 1px solid var(--cell-border);
+    border-radius: 10px; padding: 10px 16px; margin-bottom: 14px;
+  }
+  header .chapter { font-size: 18px; font-weight: bold; color: var(--gold); }
+  header .meta { color: var(--text-dim); }
+  header .res { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
+  header button {
+    background: #2c3441; color: var(--text);
+    border: 1px solid var(--cell-border); border-radius: 6px;
+    padding: 6px 14px; cursor: pointer; font-size: 13px;
+  }
+  header button:hover { background: #39424f; }
+  main { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+  #boardWrap {
+    background: var(--panel); border: 1px solid var(--cell-border);
+    border-radius: 10px; padding: 14px;
+  }
+  #board {
+    display: grid; grid-template-columns: 34px repeat(5, var(--cell));
+    gap: 6px; padding-top: var(--cell);
+  }
+  .rowLabel { display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; color: var(--text-dim); font-size: 12px; }
+  .cell {
+    position: relative; height: var(--cell);
+    background: var(--cell-bg); border: 1px solid var(--cell-border);
+    border-radius: 8px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; user-select: none;
+  }
+  .cell .num { position: absolute; top: 3px; left: 6px; font-size: 11px; color: var(--text-dim); }
+  .cell .ico { font-size: 24px; line-height: 1; }
+  .cell .lbl { font-size: 11px; color: var(--text-dim); }
+  .cell.void { visibility: hidden; }
+  .cell.visited { opacity: 0.55; }
+  .cell.visited::after {
+    content: "✓"; position: absolute; right: 5px; bottom: 2px;
+    color: var(--green); font-size: 12px;
+  }
+  .cell.cand {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px var(--green), 0 0 8px rgba(76,175,120,.35);
+    cursor: pointer; animation: pulse 1.2s ease-in-out infinite;
+  }
+  .cell.cand:hover { background: #2b3a33; }
+  .cell.current {
+    border-color: var(--gold); background: #35301f;
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+  .cell.boss { border-color: #a04141; }
+  .cell.boss.current { border-color: var(--gold); }
+  .cell.locked { opacity: 0.45; cursor: not-allowed; }
+  .cell.locked::after { content: "🔒"; position: absolute; right: 4px; bottom: 2px; font-size: 11px; }
+  .cell.rock { opacity: 0.5; border-style: dashed; border-color: #5a5142; }
+  .cell.rock::after { content: "⛔"; position: absolute; right: 4px; bottom: 2px; font-size: 11px; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 1px var(--green), 0 0 4px rgba(76,175,120,.25); }
+    50% { box-shadow: 0 0 0 2px var(--green), 0 0 12px rgba(76,175,120,.5); }
+  }
+  #side { flex: 1; min-width: 300px; max-width: 420px; display: flex; flex-direction: column; gap: 12px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--cell-border);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .panel h3 { font-size: 14px; color: var(--gold); margin-bottom: 8px; }
+  #teamPanel .tRow { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px; }
+  #teamPanel .tRow .thp { color: #ff6b6b; font-weight: bold; }
+  #teamPanel .tRow .tskill { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+  #candList .c { color: var(--green); font-weight: bold; }
+  #candList .hint { color: var(--text-dim); font-size: 12px; margin-top: 6px; line-height: 1.7; }
+  #log { max-height: 260px; overflow-y: auto; font-size: 13px; line-height: 1.9; }
+  #log .dim { color: var(--text-dim); }
+  #log .good { color: var(--green); }
+  #log .warn { color: var(--gold); }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--text-dim); }
+  .legend span { white-space: nowrap; }
+
+  /* ===== 界面三：战斗（布阵阶段）===== */
+  #battleScreen { max-width: 1100px; margin: 0 auto; }
+  .bTop {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--panel); border: 1px solid var(--cell-border);
+    border-radius: 10px; padding: 10px 16px; margin-bottom: 14px;
+  }
+  .bTop .bTitle { font-size: 18px; font-weight: bold; color: var(--gold); }
+  .bTop .bTurn {
+    background: #2c3441; border: 1px solid var(--cell-border);
+    border-radius: 6px; padding: 2px 12px; font-weight: bold;
+  }
+  .bTop .bRes { margin-left: auto; display: flex; gap: 16px; color: var(--text-dim); }
+  .bMain { display: flex; gap: 14px; align-items: flex-start; }
+  .bLeft {
+    width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;
+  }
+  .bStats {
+    display: flex; gap: 12px; background: var(--panel);
+    border: 1px solid var(--cell-border); border-radius: 8px;
+    padding: 8px 10px; font-size: 13px; justify-content: space-between;
+  }
+  .dHeroRow .dPos { margin-left: auto; color: var(--text-dim); font-size: 12px; }
+  #btnDeploy {
+    background: #4a3d14; color: var(--gold);
+    border: 1px solid var(--gold); border-radius: 8px;
+    padding: 11px 0; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 4px;
+  }
+  #btnDeploy:hover { background: #5c4c1a; }
+  #battleFieldWrap {
+    background: var(--panel); border: 1px solid var(--cell-border);
+    border-radius: 10px; padding: 14px; flex: 1;
+  }
+  #battleField { position: relative; display: grid; grid-template-columns: repeat(5, var(--cell)); gap: 6px; }
+  .bCell {
+    position: relative; height: var(--cell);
+    background: var(--cell-bg); border: 1px solid var(--cell-border);
+    border-radius: 8px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; user-select: none;
+  }
+  .bCell.void { visibility: hidden; }
+  .bCell .coord { position: absolute; bottom: 3px; right: 6px; font-size: 10px; color: var(--text-dim); }
+  .bCell.enemy { background: #2a2430; }
+  .bCell.enemy.occupied { border-color: #6a4a8a; }
+  .bCell.enemy .ico { font-size: 26px; line-height: 1; }
+  .bCell.enemy .mhp { position: absolute; top: 3px; left: 6px; color: #ff6b6b; font-weight: bold; font-size: 13px; }
+  .bCell .mname { font-size: 11px; color: var(--text-dim); }
+  .bCell.ours.occupied { border-color: var(--blue); background: #1f2a38; cursor: grab; }
+  .bCell.ours.occupied:active { cursor: grabbing; }
+  .bCell.ours:not(.occupied) { border-style: dashed; opacity: 0.6; }
+  .bCell.ours:not(.occupied)::after {
+    content: "＋"; color: #3a4150; font-size: 18px;
+  }
+  .bCell.ours .ico { font-size: 26px; line-height: 1; }
+  .bCell.ours.dragOver { border-color: var(--gold); background: #35301f; }
+  .bZoneLabel { font-size: 11px; color: var(--text-dim); margin: 2px 0 6px; }
+  #bHint { margin-top: 10px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+  /* ===== 战斗（投骰子阶段）===== */
+  #btnReroll {
+    background: #2c3441; color: var(--text);
+    border: 1px solid var(--cell-border); border-radius: 8px;
+    padding: 9px 0; font-size: 14px; cursor: pointer; margin-top: 4px;
+  }
+  #btnReroll:hover { background: #39424f; }
+  #btnReroll:disabled { opacity: .45; cursor: not-allowed; }
+  #btnReroll:disabled:hover { background: #2c3441; }
+  #btnEndAct {
+    background: #4a3416; color: var(--gold);
+    border: 1px solid #6b5426; border-radius: 8px;
+    padding: 9px 0; font-size: 14px; cursor: pointer; margin-top: 4px;
+  }
+  #btnEndAct:hover { background: #5c4118; }
+  #bStats .breatheSwap { position: relative; width: 100%; height: 24px; }
+  #bStats .breatheSwap .layer {
+    position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .layerA { animation: breatheA 3.2s ease-in-out infinite; }
+  .layerB { animation: breatheB 3.2s ease-in-out infinite; }
+  @keyframes breatheA { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes breatheB { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+  .diceBar { display: flex; width: 100%; justify-content: space-around; align-items: center; }
+  .diceBar .dGroup { display: flex; align-items: center; gap: 4px; font-weight: bold; font-size: 16px; }
+  .diceBar .dGroup .ico { font-size: 16px; }
+  .allUnlockedTxt { color: var(--gold); font-weight: bold; font-size: 14px; letter-spacing: 1px; }
+  .dHeroRow {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--cell-border);
+    border-radius: 8px; padding: 7px 8px;
+    min-height: 58px; box-sizing: border-box;
+  }
+  /* 空槽位占位行：与英雄行同高，1-6 号位行高固定 */
+  .emptySlot {
+    justify-content: center; background: transparent;
+    border-style: dashed; color: var(--text-dim); box-sizing: border-box;
+  }
+  .emptySlot .emptyNote { font-size: 12px; letter-spacing: 1px; }
+  .dAvatar {
+    width: 42px; height: 42px; flex-shrink: 0;
+    border: 1px solid var(--cell-border); border-radius: 6px; background: #232830;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; line-height: 1; text-align: center; color: var(--text);
+  }
+  .dieFace {
+    width: 40px; height: 40px; border-radius: 7px; flex-shrink: 0; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.28);
+    cursor: pointer; user-select: none;
+  }
+  .dieFace:hover { filter: brightness(1.12); }
+  .dieFace.dieLocked {
+    border: 2px solid var(--gold);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.28), 0 0 8px rgba(232,179,57,.45);
+  }
+  .dieLock { position: absolute; top: -7px; left: -7px; font-size: 13px; line-height: 1; }
+  /* 悬停骰子：显示该英雄 6 面各自的格子构成 */
+  .slotTip {
+    display: none; position: absolute; bottom: calc(100% + 7px); left: 0;
+    gap: 3px;
+    background: #14171c; border: 1px solid var(--cell-border); border-radius: 6px;
+    padding: 4px; z-index: 60; white-space: nowrap;
+  }
+  .dieFace:hover .slotTip { display: flex; }
+  .slotTip .tGem {
+    width: 24px; height: 24px; border-radius: 4px; position: relative;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,.28);
+  }
+  .slotTip .tGem.cur { outline: 2px solid var(--gold); outline-offset: -1px; }
+  .slotTip .tGem i {
+    position: absolute; right: -4px; bottom: -4px; font-style: normal;
+    background: #14171c; border: 1px solid #3a4150; border-radius: 7px;
+    min-width: 14px; height: 14px; padding: 0 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: bold; color: #fff;
+  }
+  .slotTip .tipRow { display: flex; gap: 3px; }
+  .slotTip .tipCap { display: block; font-size: 10px; color: var(--text-dim); margin-top: 4px; text-align: center; }
+  .dieBadge {
+    position: absolute; right: -5px; bottom: -5px;
+    background: #14171c; border: 1px solid #3a4150; border-radius: 8px;
+    min-width: 17px; height: 17px; padding: 0 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: bold; color: #fff;
+  }
+  .dSkills { display: flex; gap: 9px; justify-content: flex-start; }
+  .dSkill { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .dSkillIcon {
+    width: 34px; height: 34px; border-radius: 6px;
+    background: #2c3441; border: 1px solid var(--cell-border);
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .dSkill.locked .dSkillIcon, .dSkill.used .dSkillIcon { filter: grayscale(1) brightness(.55); }
+  .dCosts { display: flex; gap: 2px; }
+  .dCosts .cost { margin-left: 0; min-width: 14px; height: 14px; font-size: 9px; border-radius: 3px; }
+  .dCosts .cost.off { filter: grayscale(1) brightness(.5); }
+  #battleField.locked .bCell.ours { cursor: default; }
+
+  /* ===== 战斗（开战阶段）===== */
+  .hpbarWrap { position: absolute; top: 4px; left: 6px; right: 6px; z-index: 2; }
+  .hpbar {
+    position: relative; height: 10px;
+    background: #14171c; border: 1px solid #3a4150; border-radius: 4px;
+    overflow: hidden; display: block;
+  }
+  .hpfill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; }
+  .hpnum {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: bold; color: #fff; line-height: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,.85);
+  }
+  .shbar { position: relative; height: 8px; margin-top: 2px; background: #14171c; border: 1px solid #3a4150; border-radius: 3px; overflow: hidden; display: block; }
+  .shfill { display: block; height: 100%; background: var(--blue); border-radius: 2px; }
+  .shnum {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: bold; color: #fff; line-height: 1;
+    text-shadow: 0 1px 1px rgba(0,0,0,.8);
+  }
+  /* ---- 技能效果预览（悬停目标格时）---- */
+  .pvLayer {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; z-index: 4;
+  }
+  .pvDmg {
+    font-size: 26px; font-weight: bold; line-height: 1; color: #ff4b3e;
+    text-shadow: 0 0 3px #641712, 2px 2px 0 rgba(0,0,0,.75);
+  }
+  /* 条上将失去的段：虚化 + 缓慢闪动 */
+  .pvLostSeg {
+    position: absolute; top: 0; bottom: 0;
+    background: rgba(255,255,255,.55); filter: blur(1px);
+    animation: pvBlink 1.6s ease-in-out infinite;
+  }
+  /* 条上将获得的段：半透明浅色 */
+  .pvGainSeg { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.4); }
+  @keyframes pvBlink { 0%, 100% { opacity: .25; } 50% { opacity: .7; } }
+  /* .pvCross 供悬停预览用（clearPreviews 统一移除）；.aimCross 同款样式但属于持续瞄准预览，
+     独立命名避免被 mouseleave 的 clearPreviews 连带删掉 */
+  .pvCross, .aimCross {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #ff2020; font-size: 13px; font-weight: bold; line-height: 1;
+    text-shadow: 0 0 2px #000, 0 0 4px #000;
+  }
+  .pvGhostSh { display: block; height: 100%; background: rgba(74,144,217,.5); border-radius: 2px; }
+  .pvGhostBar.shbar { border-style: dashed; opacity: .95; }
+  /* ---- 敌方瞄准结果预览（持续显示在目标格的血/盾条上）---- */
+  .aimLossSeg {
+    position: absolute; top: 0; bottom: 0;
+    background: rgba(255,255,255,.55); filter: blur(1px);
+    animation: pvBlink 1.6s ease-in-out infinite;
+  }
+  .aimGainSeg { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.4); }
+  .aimDeath {
+    position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 18px; line-height: 1; pointer-events: none; z-index: 3;
+    color: #ff5b4d; text-shadow: 0 0 3px #000, 0 0 6px #000;
+    animation: aimBlink 1.2s ease-in-out infinite;
+  }
+  @keyframes aimBlink { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+  /* ---- 敌方瞄准指示线：悬停敌方格，虚线曲线+箭头指向其锁定目标 ---- */
+  #aimLinesSvg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 60; overflow: visible;
+  }
+  #aimLinesSvg .aimLine {
+    fill: none; stroke: #ff5b4d; stroke-width: 2;
+    stroke-dasharray: 6 5; stroke-linecap: round; opacity: .9;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.8));
+    animation: aimDash .55s linear infinite;
+  }
+  @keyframes aimDash { to { stroke-dashoffset: -11; } }
+  .bCell.tCand {
+    border-color: var(--green); cursor: pointer;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .bCell.enemy.tCand { border-color: var(--red); }
+  .bCell.tCand:hover { filter: brightness(1.25); }
+  /* 技能完整范围：连续区域合并成一整个细红框（SVG 外沿覆盖层） */
+  #skRangeSvg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 55; overflow: visible;
+  }
+  #skRangeSvg path {
+    fill: none; stroke: var(--red); stroke-width: 1.5;
+    stroke-linecap: square; opacity: .85;
+  }
+  /* ---- 不可释放目标飘字提示 ---- */
+  .denyFloat {
+    position: absolute; top: 42%; left: 50%;
+    font-size: 11px; font-weight: bold; white-space: nowrap;
+    color: #ff9b9b; background: rgba(20,23,28,.94);
+    border: 1px solid #a04545; border-radius: 4px; padding: 1px 6px;
+    z-index: 70; pointer-events: none;
+    animation: denyUp 1.1s ease-out forwards;
+  }
+  @keyframes denyUp {
+    0% { opacity: 0; transform: translate(-50%, 6px); }
+    18% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -20px); }
+  }
+  /* ---- 技能释放反馈：血/盾条宽度过渡 + 飘字 + 受击闪动 + 死亡 ---- */
+  .hpfill, .shfill { transition: width .45s ease; }
+  .fxFloat {
+    position: absolute; top: 34%; left: 50%;
+    font-weight: bold; white-space: nowrap;
+    pointer-events: none; z-index: 65;
+    animation: fxRise 1.05s ease-out forwards;
+  }
+  .fxFloat.fxDmg {
+    font-size: 21px; color: #ff6b6b;
+    text-shadow: 0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  }
+  .fxFloat.fxShield { font-size: 15px; color: #8fc2ff; text-shadow: 1px 1px 0 #000, -1px 1px 0 #000; }
+  @keyframes fxRise {
+    0% { opacity: 0; transform: translate(-50%, 6px) scale(.7); }
+    18% { opacity: 1; transform: translate(-50%, 0) scale(1.12); }
+    30% { transform: translate(-50%, -2px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -30px) scale(1); }
+  }
+  .bCell.hitFx { animation: hitFlash .38s ease-out; }
+  @keyframes hitFlash {
+    0% { filter: brightness(2.4) saturate(0); }
+    35% { transform: translateX(-2px); }
+    55% { transform: translateX(2px); }
+    100% { filter: none; transform: none; }
+  }
+  /* 施法晃动：释放者 + 受影响单位格同步抖一下，表示技能释放 */
+  .bCell.castFx { animation: castShake .42s ease-in-out; }
+  @keyframes castShake {
+    0% { transform: none; filter: none; }
+    20% { transform: translateY(-3px) scale(1.05); filter: brightness(1.45); }
+    45% { transform: translateY(2px) scale(.98); }
+    70% { transform: translateY(-1px) scale(1.01); filter: brightness(1.15); }
+    100% { transform: none; filter: none; }
+  }
+  .bCell.dying { pointer-events: none; animation: dieOut .95s ease-in forwards; }
+  .bCell.dying .mname, .bCell.dying .coord { opacity: .6; }
+  @keyframes dieOut {
+    0% { filter: grayscale(0) brightness(1); transform: none; }
+    25% { filter: grayscale(1) brightness(1.8); transform: rotate(-4deg); }
+    100% { filter: grayscale(1) brightness(.35); opacity: 0; transform: rotate(8deg) scale(.65); }
+  }
+  .bCell.ours.occupied.selUnit {
+    border-color: var(--gold); background: #35301f;
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+  .dHeroRow.acted { opacity: .45; }
+  .dHeroRow.deadRow { opacity: .3; filter: grayscale(1); }
+  /* 骰子阶段阵亡英雄：头像/技能置灰，骰子保持可交互（正常参与投骰与锁定） */
+  .dAvatar.dead { filter: grayscale(1); opacity: .35; }
+  .dSkill.dead { filter: grayscale(1); opacity: .35; }
+  .dHeroRow.selHeroRow {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+  .dSkill.pick .dSkillIcon {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 8px rgba(232,179,57,.45);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 界面一：选择出击阵容 ===== -->
+<div id="selectScreen">
+  <div class="title">—— 选择出击阵容 ——</div>
+  <div id="cardRow"></div>
+  <div id="selectHint">选择<b id="sizeWord">三</b>个单位出击 <b id="selCount">0/3</b></div>
+  <div id="bottomBtns">
+    <button id="btnChallenge">挑战模式</button>
+    <button id="btnFight" class="ready">出 击</button>
+    <button id="btnCodex">晋升图鉴</button>
+    <button id="btnRefreshCfg">刷新配置</button>
+  </div>
+</div>
+
+<!-- ===== 界面二：地图关卡 ===== -->
+<div id="mapScreen" class="hidden">
+  <header>
+    <div class="chapter" id="chapter">第一章</div>
+    <div class="meta" id="mapTag"></div>
+    <div class="meta" id="posInfo"></div>
+    <div class="res">
+      <div>🪙 <span id="coins">0</span></div>
+      <div>✨ <span id="exp">0</span></div>
+    </div>
+    <button id="restart">重新开始</button>
+  </header>
+  <main>
+    <div id="boardWrap">
+      <div id="board"></div>
+      <div class="legend" style="margin-top:10px" id="legend"></div>
+    </div>
+    <div id="side">
+      <div class="panel" id="teamPanel">
+        <h3>出击阵容</h3>
+        <div id="teamList"></div>
+      </div>
+      <div class="panel">
+        <h3>当前可选格子</h3>
+        <div id="candList"></div>
+        <div class="hint">
+          移动规则（按 here%5 分档）：<br>
+          余1：+5 / +6　余2：-1 / +5 / +6　余3：-1 / +5 / +1<br>
+          余4：+4 / +5 / +1　余0：+4 / +5<br>
+          rock（⛔ 虚线框）不可点选、不可通行；<br>
+          走过的格子与曾解锁但未选择的格子永久锁定 🔒；<br>
+          不存在的格子（26/30/31/32 等）自动过滤；<br>
+          33 号（BOSS）胜利后进入下一 tier 地图的 3 号格。
+        </div>
+      </div>
+      <div class="panel">
+        <h3>事件日志</h3>
+        <div id="log"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== 界面三：战斗（布阵阶段）===== -->
+<div id="battleScreen" class="hidden">
+  <div class="bTop">
+    <div class="bTitle" id="bTitle">⚔️ 普通战斗</div>
+    <div class="bTurn" id="bTurn">Turn 1</div>
+    <div class="bRes">
+      <div>🪙 100</div><div>🔨9</div><div>💣10</div><div>⚙️</div>
+    </div>
+  </div>
+  <div class="bMain">
+    <div class="bLeft">
+      <div class="bStats" id="bStats"><span>⚔️ 0</span><span>🛡️ 0</span><span>🎲 0</span><span>⭐ 0</span></div>
+      <div id="bTeamRows"></div>
+      <button id="btnEndAct" class="hidden">⏭️ 结束行动</button>
+      <button id="btnReroll" class="hidden">🎲 重新投骰</button>
+      <button id="btnDeploy">布阵结束</button>
+    </div>
+    <div id="battleFieldWrap">
+      <div class="bZoneLabel">敌方阵营（X=行，1 为靠近我方；Y=列，1 为左侧）</div>
+      <div id="battleField"></div>
+      <div class="bZoneLabel" style="margin-top:6px" id="oursZoneLabel">我方阵营（6 格，初始上 3 人，拖动调整站位）</div>
+      <div id="bHint">
+        布阵阶段：拖动我方英雄到任意空格可换位；敌军来自 mapPoint.battleContent 随机抽取，
+        按 battleScene 站位摆放；敌方站位区块按 pointType 读取 configValue.battleMap
+        （battle / battleHigh，battleBoss 暂用 battleHigh）。<br>
+        投骰子阶段：点击左侧任意角色的骰子可锁定 / 解锁（🔒 金框），锁定的骰子
+        在"重新投骰"时保持不变（每场最多重投 2 次）。
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*CONFIG-DATA-START*/
+const GAME_DATA = {"initMapTier":1,"maps":[{"mapTag":"t1_Map1","tier":1},{"mapTag":"t2_Map1","tier":2},{"mapTag":"t3_Map1","tier":3},{"mapTag":"t3_Map2","tier":3},{"mapTag":"t3_Map3","tier":3}],"points":{"t1_Map1":{"1":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"2":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"3":{"type":"start","battle":null,"rewards":[],"extra":null},"4":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"5":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"6":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":"shop"},"7":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"8":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"9":{"type":"rock","battle":null,"rewards":[],"extra":null},"10":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"11":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"12":{"type":"rock","battle":null,"rewards":[],"extra":null},"13":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"14":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"15":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"16":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"17":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"18":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"19":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"20":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"21":{"type":"randWeapon","battle":null,"rewards":[["randArmor","q2"]],"extra":null},"22":{"type":"rock","battle":null,"rewards":[],"extra":null},"23":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"24":{"type":"rock","battle":null,"rewards":[],"extra":null},"25":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"27":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"28":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"29":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":"shop"},"33":{"type":"battleBoss","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null}},"t2_Map1":{"1":{"type":"rock","battle":null,"rewards":[],"extra":null},"2":{"type":"rock","battle":null,"rewards":[],"extra":null},"3":{"type":"start","battle":null,"rewards":[],"extra":null},"4":{"type":"rock","battle":null,"rewards":[],"extra":null},"5":{"type":"rock","battle":null,"rewards":[],"extra":null},"6":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"7":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"8":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"9":{"type":"rock","battle":null,"rewards":[],"extra":null},"10":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"11":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"12":{"type":"rock","battle":null,"rewards":[],"extra":null},"13":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"14":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"15":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"16":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"17":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"18":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"19":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"20":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"21":{"type":"randWeapon","battle":null,"rewards":[["randArmor","q2"]],"extra":null},"22":{"type":"rock","battle":null,"rewards":[],"extra":null},"23":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"24":{"type":"rock","battle":null,"rewards":[],"extra":null},"25":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"27":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"28":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"29":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"33":{"type":"battleBoss","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null}}},"initTeamSize":3,"initTeamList":["longswordKnight","greatswordKnight","martialArtist","shieldOfficer","blazeMage"],"heroes":{"longswordKnight":{"name":"长剑骑士","cls":"fighter","baseHp":8,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",2],["blue",2],["blue",2]],"skills":["longswordKnight_skill1","longswordKnight_skill2"]},"greatswordKnight":{"name":"大剑骑士","cls":"fighter","baseHp":9,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",3],["blue",1],["blue",1]],"skills":["greatswordKnight_skill1","greatswordKnight_skill2"]},"martialArtist":{"name":"拳刃骑士","cls":"fighter","baseHp":7,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",2],["red",2],["blue",2]],"skills":["martialArtist_skill1","martialArtist_skill2"]},"shieldOfficer":{"name":"盾卫士官","cls":"tank","baseHp":12,"baseShield":0,"slots":[["red",3],["blue",3],["blue",3],["blue",3],["blue",3],["yellow",1]],"skills":["shieldOfficer_skill1","shieldOfficer_skill2"]},"blazeMage":{"name":"爆炎术士","cls":"mage","baseHp":6,"baseShield":0,"slots":[["red",1],["red",1],["green",3],["green",3],["green",3],["green",2]],"skills":["blazeMage_skill1","blazeMage_skill2"]}},"skills":{"longswordKnight_skill1":{"name":"突击","desc":"对近战目标造成18点伤害","cost":[["red","3"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":18,"dmgShieldPara":0,"shield":0},"longswordKnight_skill2":{"name":"格挡","desc":"自动：自身获得6点护甲","cost":[["blue","2"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":6},"greatswordKnight_skill1":{"name":"横扫","desc":"对近战目标及左右相邻单位造成11点伤害","cost":[["red","4"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0;-1,0;1,0","dmg":11,"dmgShieldPara":0,"shield":0},"greatswordKnight_skill2":{"name":"连斩","desc":"自动：为自身的横扫增加连击1","cost":[["blue","1"],["green","2"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":0},"martialArtist_skill1":{"name":"乱拳连打","desc":"对近战目标造成4点伤害，连击3","cost":[["red","1"],["blue","1"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":4,"dmgShieldPara":0,"shield":0},"martialArtist_skill2":{"name":"乱拳蓄力","desc":"自动：为自身的乱拳连打增加连击1","cost":[["green","1"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":5},"shieldOfficer_skill1":{"name":"劈砍","desc":"对近战目标造成8点伤害","cost":[["red","1"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":8,"dmgShieldPara":0,"shield":0},"shieldOfficer_skill2":{"name":"援护","desc":"我方任意单位获得5点护甲","cost":[["blue","1"],["green","2"]],"skillType":"skill2","useType":"choose","targetType":"friend","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":5},"blazeMage_skill1":{"name":"大火球","desc":"对任意目标造成22点伤害","cost":[["red","1"],["green","3"]],"skillType":"skill2","useType":"choose","targetType":"any","targetPosion":"0,0","dmg":22,"dmgShieldPara":0,"shield":0},"blazeMage_skill2":{"name":"爆炎火球","desc":"对任意目标及相邻单位造成4点伤害","cost":[["green","1"]],"skillType":"skill1","useType":"choose","targetType":"any","targetPosion":"0,0;0,1;0,-1;-1,0;1,0","dmg":4,"dmgShieldPara":0,"shield":0},"wolf_skill1":{"name":"撕咬","desc":"对近战目标造成2点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"melee","targetPosion":"0,0","dmg":2,"dmgShieldPara":0,"shield":0},"bandit_skill1":{"name":"劈砍","desc":"对近战目标造成3点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"melee","targetPosion":"0,0","dmg":3,"dmgShieldPara":0,"shield":0},"banditArcher_skill1":{"name":"射击","desc":"对任意目标造成3点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"any","targetPosion":"0,0","dmg":3,"dmgShieldPara":0,"shield":0}},"battleMap":{"battle":[[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4]],"battleHigh":[[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,2],[3,3],[3,4],[3,5]]},"battleScene":{"battle1":[{"m":"wolf","x":2,"y":1},{"m":"bandit","x":4,"y":1},{"m":"banditArcher","x":1,"y":1}],"battle2":[{"m":"wolf","x":3,"y":2},{"m":"bandit","x":5,"y":2},{"m":"banditArcher","x":1,"y":2}]},"monsters":{"wolf":{"name":"狼","baseHp":4,"baseShield":0,"skills":["wolf_skill1"]},"bandit":{"name":"山贼","baseHp":6,"baseShield":0,"skills":["bandit_skill1"]},"banditArcher":{"name":"山贼弓手","baseHp":6,"baseShield":0,"skills":["banditArcher_skill1"]}}};
+/*CONFIG-DATA-END*/
+
+// ---- 展示用静态映射（纯视觉，非配置）----
+const CLASS_INFO = {
+  fighter: ['战士', '⚔️'], tank: ['守卫', '🛡️'], ranger: ['弓箭手', '🏹'],
+  mage: ['法师', '🧙'], priest: ['牧师', '🕊️'],
+};
+const HERO_EMOJI = { swordsman: '🗡️', guard: '🛡️', hunter: '🏹', apprentice: '🔥', priest: '🕊️', militia: '⚔️' };
+const MONSTER_EMOJI = { wolf: '🐺', blackWolf: '🐺', bandit: '🪓', banditArcher: '🏹' };
+const SLOT_COLOR = { red: '#d9534f', blue: '#4a90d9', green: '#4caf78', yellow: '#e8b339' };
+const DICE_ORDER = ['red', 'blue', 'green', 'yellow'];
+const DICE_ICON = { red: '⚔️', blue: '🛡️', green: '⛏️', yellow: '⭐' }; // 统一替图，后续补素材
+const CN_NUM = ['零','一','二','三','四','五','六','七','八','九','十'];
+
+const $ = s => document.querySelector(s);
+
+// ================= 界面一：选人 =================
+const selState = { team: [] }; // 有序 tag 数组 = 出战顺序
+
+function costHtml(cost) {
+  return (cost || []).map(([c, n]) =>
+    `<span class="cost" style="background:${SLOT_COLOR[c] || '#777'}">${n}</span>`).join('');
+}
+
+function buildCards() {
+  const row = $('#cardRow');
+  row.innerHTML = '';
+  for (const tag of GAME_DATA.initTeamList) {
+    const h = GAME_DATA.heroes[tag];
+    if (!h) continue;
+    const skillTag = h.skills[0];
+    const sk = skillTag ? GAME_DATA.skills[skillTag] : null;
+    const [clsName, clsEmoji] = CLASS_INFO[h.cls] || [h.cls, '❓'];
+    // 最多展示 2 个技能：每技能「技能条（名称+费用）+ 描述」上下堆叠
+    const blocks = h.skills.slice(0, 2).map(st => {
+      const s = GAME_DATA.skills[st];
+      return s ? `<div class="skillBlock"><div class="skillBar">${s.name}${costHtml(s.cost)}</div>`
+        + `<div class="desc">${s.desc}</div></div>` : '';
+    }).join('') || (sk ? `<div class="skillBar">${sk.name}${costHtml(sk.cost)}</div><div class="desc">${sk.desc}</div>` : '<div class="skillBar">无技能</div>');
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.dataset.tag = tag;
+    div.innerHTML = `
+      <div class="cls">${clsEmoji} ${clsName}</div>
+      <div class="hp">❤${h.baseHp}</div>
+      <div class="art">${HERO_EMOJI[tag] || clsEmoji}</div>
+      <div class="name">${h.name}</div>
+      <div class="slots">${h.slots.map(([t, n]) =>
+        `<span class="gem" style="background:${SLOT_COLOR[t] || '#777'}">${n}</span>`).join('')}</div>
+      ${blocks}`;
+    div.addEventListener('click', () => toggleHero(tag));
+    row.appendChild(div);
+  }
+  refreshSelectUi();
+}
+
+function toggleHero(tag) {
+  const i = selState.team.indexOf(tag);
+  if (i >= 0) selState.team.splice(i, 1);
+  else if (selState.team.length < GAME_DATA.initTeamSize) selState.team.push(tag);
+  else {
+    // 已满：抖动提示
+    const div = document.querySelector(`.card[data-tag="${tag}"]`);
+    if (div) { div.classList.remove('deny'); void div.offsetWidth; div.classList.add('deny'); }
+  }
+  refreshSelectUi();
+}
+
+function refreshSelectUi() {
+  const size = GAME_DATA.initTeamSize;
+  for (const div of document.querySelectorAll('.card')) {
+    div.classList.toggle('selected', selState.team.includes(div.dataset.tag));
+  }
+  $('#selCount').textContent = `${selState.team.length}/${size}`;
+  $('#sizeWord').textContent = size <= 10 ? CN_NUM[size] : size;
+  $('#selectHint').classList.toggle('full', selState.team.length === size);
+  $('#btnFight').classList.toggle('ready', selState.team.length === size);
+}
+
+function showSelect() {
+  $('#mapScreen').classList.add('hidden');
+  $('#selectScreen').classList.remove('hidden');
+}
+
+function startRun() {
+  if (selState.team.length !== GAME_DATA.initTeamSize) return;
+  $('#selectScreen').classList.add('hidden');
+  $('#mapScreen').classList.remove('hidden');
+  renderTeamPanel();
+  initGame();
+}
+
+function renderTeamPanel() {
+  $('#teamList').innerHTML = selState.team.map(tag => {
+    const h = GAME_DATA.heroes[tag];
+    const names = h.skills.slice(0, 2)
+      .map(st => GAME_DATA.skills[st] ? GAME_DATA.skills[st].name : '').filter(Boolean).join('/');
+    return `<div class="tRow"><span>${HERO_EMOJI[tag] || '❓'} ${h.name}</span>
+      <span class="thp">❤${h.baseHp}</span>
+      <span class="tskill">${names}</span></div>`;
+  }).join('');
+}
+
+$('#btnFight').addEventListener('click', startRun);
+$('#btnChallenge').addEventListener('click', () => alert('挑战模式：未开放'));
+$('#btnCodex').addEventListener('click', () => alert('晋升图鉴：未开放'));
+$('#btnRefreshCfg').addEventListener('click', async () => {
+  const btn = $('#btnRefreshCfg');
+  btn.disabled = true; btn.textContent = '刷新中…';
+  try {
+    const res = await fetch('/api/refresh');
+    const j = await res.json();
+    if (j.ok) { location.reload(); return; }
+    alert('配置导出失败：\n' + (j.log || '未知错误'));
+  } catch (e) {
+    alert('刷新失败：未检测到本地 demo 服务器（file:// 直开无法执行导出脚本）。\n'
+      + '请改用 start_map_demo.bat 启动，它会开启 http://127.0.0.1:8765/ 服务。');
+  }
+  btn.disabled = false; btn.textContent = '刷新配置';
+});
+
+// ================= 界面二：地图关卡 =================
+const TYPE_INFO = {
+  battle:     { ico: '⚔️', label: '战斗' },
+  battleHigh: { ico: '🔥', label: '精英战斗' },
+  battleBoss: { ico: '👑', label: 'BOSS战斗' },
+  coin:       { ico: '🪙', label: '金币' },
+  randWeapon: { ico: '🎁', label: '随机装备' },
+  rock:       { ico: '⛰️', label: '山石' },
+  start:      { ico: '🚩', label: '出生点' },
+};
+const MAX_NUM = 33;
+
+const state = {
+  tier: 1, mapTag: '', points: {},
+  current: 3, coins: 0, exp: 0,
+  visited: new Set(), locked: new Set(), over: false, logs: [],
+};
+
+// ---- 核心规则：候选格子（2026-10-26 修订版）----
+function candidates(here) {
+  if (here === MAX_NUM) return []; // 33 = 通往下一 tier，无普通候选
+  const m = here % 5;
+  let opts;
+  if (m === 1) opts = [here + 5, here + 6];
+  else if (m === 2) opts = [here - 1, here + 5, here + 6];
+  else if (m === 3) opts = [here - 1, here + 5, here + 1];
+  else if (m === 4) opts = [here + 4, here + 5, here + 1];
+  else opts = [here + 4, here + 5]; // m === 0
+  return opts.filter(n => n >= 1 && state.points[n] && state.points[n].type !== 'rock'
+    && !state.visited.has(n) && !state.locked.has(n));
+}
+
+// ---- 流程 ----
+function pickMapForTier(tier) {
+  const maps = GAME_DATA.maps.filter(m =>
+    m.tier === tier && Object.keys(GAME_DATA.points[m.mapTag] || {}).length > 0);
+  return maps.length ? maps[Math.floor(Math.random() * maps.length)].mapTag : null;
+}
+
+function initGame() {
+  state.tier = GAME_DATA.initMapTier;
+  state.coins = 0; state.exp = 0;
+  const tag = pickMapForTier(state.tier);
+  state.logs = [];
+  if (!tag) { state.over = true; log(`配置错误：tier ${state.tier} 没有已配置 mapPoint 的地图`, 'warn'); render(); return; }
+  enterMap(tag);
+  const names = selState.team.map(t => GAME_DATA.heroes[t].name).join('、');
+  log(`阵容出击：${names}`, 'good');
+  log(`进入 ${state.mapTag}（t${state.tier}），从 3 号格出发`, 'good');
+  render();
+}
+
+function enterMap(tag) {
+  state.mapTag = tag;
+  state.points = GAME_DATA.points[tag];
+  state.current = 3;
+  state.visited = new Set([3]);
+  state.locked = new Set();
+}
+
+function move(n) {
+  if (state.over) return;
+  const cands = candidates(state.current);
+  if (!cands.includes(n)) return;
+  for (const c of cands) if (c !== n) state.locked.add(c);
+  state.current = n;
+  state.visited.add(n);
+  log(`→ 移动到 ${n} 号格`, 'dim');
+  resolvePoint(n);
+  render();
+}
+
+function grantRewards(rewards) {
+  for (const [k, v] of rewards) {
+    if (k === 'coin') { state.coins += Number(v); log(`  获得金币 +${v}`, 'good'); }
+    else if (k === 'exp') { state.exp += Number(v); log(`  获得经验 +${v}`, 'good'); }
+    else if (k === 'randWeapon') log(`  随机武器：品质 ${v}（背包未实现，仅记录）`, 'warn');
+    else if (k === 'randArmor') log(`  随机护甲：品质 ${v}（背包未实现，仅记录）`, 'warn');
+    else log(`  奖励 ${k},${v}`, 'dim');
+  }
+}
+
+function resolvePoint(n) {
+  const p = state.points[n];
+  if (!p) return;
+  const info = TYPE_INFO[p.type] || { ico: '❓', label: p.type };
+  switch (p.type) {
+    case 'start': log('🚩 出生点'); break;
+    case 'rock': log('⛰️ 山石，无事件'); break;
+    case 'coin': log('🪙 拾取金币'); grantRewards(p.rewards); break;
+    case 'randWeapon': log('🎁 随机装备点'); grantRewards(p.rewards); break;
+    case 'battle': case 'battleHigh': case 'battleBoss': {
+      if (openBattle(p)) break; // 进入布阵阶段；结算在"布阵结束"里
+      // 缺战斗配置时降级为模拟胜利
+      const names = (p.battle || '').split(',').filter(Boolean).join('、');
+      log(`${info.ico} ${info.label}：${names}（缺少战斗配置，模拟胜利）`, 'warn');
+      grantRewards(p.rewards);
+      if (p.extra === 'shop') log('🏪 此处有商店（未实现）', 'warn');
+      if (p.type === 'battleBoss') advanceTier();
+      break;
+    }
+    default: log(`❓ 未知类型 ${p.type}`);
+  }
+  if (p.extra === 'shop' && p.type !== 'battleBoss') log('🏪 此处有商店（未实现）', 'warn');
+}
+
+function advanceTier() {
+  const nextT = state.tier + 1;
+  const tag = pickMapForTier(nextT);
+  if (!tag) {
+    state.over = true;
+    log(`👑 ${state.mapTag} 通关！tier ${nextT} 的地图尚未配置 mapPoint，流程演示结束。可点"重新开始"。`, 'warn');
+    return;
+  }
+  state.tier = nextT;
+  enterMap(tag);
+  log(`🗺️ 进入下一张地图：${tag}（t${nextT}），位置 3 号格`, 'good');
+}
+
+// ================= 界面三：战斗（布阵 / 投骰子 / 开战）=================
+const BATTLE_LABEL = { battle: '普通战斗', battleHigh: '精英战斗', battleBoss: 'BOSS战斗' };
+// shield 加给释放者自身的 targetType（敌方向技能）；我方向技能的 shield 加给目标
+const ENEMY_TARGET = ['melee', 'meleeRand', 'any', 'meleeAndRand', 'meleeAndRand2'];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rnd = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+const battle = {
+  active: false, pointType: '', sceneTag: '', blockKey: '',
+  phase: 'deploy',   // deploy=布阵 dice=投骰子 fight=开战
+  turn: 1,
+  stage: '',         // fight 子状态：ours=我方行动 enemies=敌方行动
+  rolls: [],         // 每个上场英雄的 roll 结果 {idx, tag, roll, type, num, locked}
+  rerollLeft: 0,     // 每回合剩余重投次数（每回合重置为 2）
+  block: new Set(),  // 敌方可用格 "x,y"
+  enemies: {},       // 布阵用 "x,y" -> monsterTag
+  deploy: [null, null, null, null, null, null], // 我方 6 格：0-2=第1行(远)，3-5=第2行(近，靠敌)
+  ours: [],          // 我方战斗单位 {idx,tag,name,hp,shield,alive,acted}
+  foes: {},          // "x,y" -> {tag,name,hp,shield,alive}
+  selHero: null,     // 我方当前选中英雄 idx
+  selSkill: null,    // 当前选中技能 tag
+  inputLock: false,  // 敌方行动期间锁定输入
+  fx: [],            // 释放反馈队列 [{key,text,cls,hit}]，renderBattle 排空播放
+  fxPrev: {},        // 受影响单位结算前快照 {key:{hp,sh}}，供血/盾条从旧值过渡
+  dying: {},         // 阵亡动画中 {key:expireTs}，动画期内保留格子渲染
+  aims: [],          // 敌方瞄准锁定 [{casterKey,skillTag,targets:[key…]}]，每回合开战时重瞄
+  rewards: [], extra: null,
+};
+
+function openBattle(p) {
+  const sceneTags = (p.battle || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!sceneTags.length) return false;
+  const tag = sceneTags[Math.floor(Math.random() * sceneTags.length)]; // 等概率随机一档
+  const rows = GAME_DATA.battleScene[tag];
+  if (!rows || !rows.length) return false;
+  const blockKey = p.type === 'battle' ? 'battle' : 'battleHigh'; // battleBoss 暂用 battleHigh
+  const block = GAME_DATA.battleMap[blockKey] || [];
+  if (!block.length) return false;
+
+  battle.active = true;
+  battle.pointType = p.type;
+  battle.sceneTag = tag;
+  battle.blockKey = blockKey;
+  battle.block = new Set(block.map(([x, y]) => x + ',' + y));
+  battle.enemies = {};
+  battle.foes = {};
+  for (const r of rows) {
+    const key = r.y + ',' + r.x; // battleScene 的 x=列、y=行(1=靠近我方)，统一转 "行,列" 键
+    battle.enemies[key] = r.m;
+    const md = GAME_DATA.monsters[r.m] || {};
+    battle.foes[key] = {
+      tag: r.m, name: md.name || r.m,
+      hp: md.baseHp || 0, maxHp: md.baseHp || 1, shield: md.baseShield || 0, alive: true,
+    };
+  }
+  battle.deploy = [null, null, null, null, null, null];
+  selState.team.forEach((t, i) => { if (i < 6) battle.deploy[i] = t; });
+  // 我方战斗单位与布阵槽位一一对应（idx=槽位；拖拽换位时同步交换，稀疏数组空槽=null）
+  battle.ours = battle.deploy.map((tag, i) => {
+    if (!tag) return null;
+    const h = GAME_DATA.heroes[tag];
+    // used=本回合已释放的技能集合（各技能解锁/释放状态独立）
+    return { idx: i, tag, name: h.name, hp: h.baseHp, maxHp: h.baseHp || 1, shield: h.baseShield || 0, alive: true, acted: false, used: new Set() };
+  });
+  battle.rewards = p.rewards;
+  battle.extra = p.extra;
+  battle.phase = 'deploy';
+  battle.turn = 1;
+  battle.stage = '';
+  battle.rolls = [];
+  battle.rerollLeft = 2;
+  battle.selHero = null; battle.selSkill = null;
+  battle.inputLock = false;
+  battle.fx = []; battle.fxPrev = {}; battle.dying = {};
+  $('#btnDeploy').textContent = '布阵结束';
+  $('#btnDeploy').classList.remove('hidden');
+  $('#btnReroll').classList.add('hidden');
+
+  $('#bTitle').textContent = `${TYPE_INFO[p.type].ico} ${BATTLE_LABEL[p.type] || p.type}`;
+  log(`${TYPE_INFO[p.type].ico} 进入${BATTLE_LABEL[p.type]}：敌方阵容 ${tag}（${rows.length} 只，站位区块 ${blockKey}）`);
+  renderBattle();
+  $('#mapScreen').classList.add('hidden');
+  $('#battleScreen').classList.remove('hidden');
+  return true;
+}
+
+// ---- 单位访问（我方 key='O'+idx，敌方 key='行,列'）----
+function getUnit(key) { return key[0] === 'O' ? battle.ours[Number(key.slice(1))] : battle.foes[key]; }
+function sideOf(key) { return key[0] === 'O' ? 'ours' : 'foe'; }
+function oppoOf(side) { return side === 'ours' ? 'foe' : 'ours'; }
+function aliveKeys(side) {
+  return side === 'ours'
+    ? battle.ours.filter(u => u && u.alive).map(u => 'O' + u.idx)
+    : Object.keys(battle.foes).filter(k => battle.foes[k].alive);
+}
+// 前排 = 该侧存活单位中最靠近对方一行的全部单位（该行空则自然穿透到下一行；不看列遮挡）
+function frontCells(side) {
+  const alive = aliveKeys(side);
+  if (!alive.length) return [];
+  if (side === 'foe') {
+    const minX = Math.min(...alive.map(k => Number(k.split(',')[0])));
+    return alive.filter(k => Number(k.split(',')[0]) === minX);
+  }
+  const maxRow = Math.max(...alive.map(k => (Number(k.slice(1)) < 3 ? 1 : 2)));
+  return alive.filter(k => (Number(k.slice(1)) < 3 ? 1 : 2) === maxRow);
+}
+
+// ---- 目标解析 ----
+// 玩家可点选 / 自动释放可随机的第一目标候选
+function targetCandidates(casterKey, targetType) {
+  const side = sideOf(casterKey), oppo = oppoOf(side);
+  switch (targetType) {
+    case 'melee': case 'meleeRand': return frontCells(oppo);
+    case 'any': case 'meleeAndRand': case 'meleeAndRand2': return aliveKeys(oppo);
+    case 'self': return [casterKey];
+    case 'friend': case 'friendAndSelf': return aliveKeys(side);
+    case 'friendMelee': return frontCells(side);
+    case 'selfAndfriendMelee': return [casterKey, ...frontCells(side)];
+  }
+  return [];
+}
+function randN(pool, n, exclude) {
+  const p = pool.filter(k => !exclude.includes(k));
+  const out = [];
+  while (out.length < n && p.length) out.push(p.splice(Math.floor(Math.random() * p.length), 1)[0]);
+  return out;
+}
+// 最终目标集合：choose 传入玩家点选的 picked（多为 1 个），其余目标按规则自动补齐
+function finalTargets(casterKey, sk, picked) {
+  const side = sideOf(casterKey), oppo = oppoOf(side);
+  const front = frontCells(oppo), foes = aliveKeys(oppo), friends = aliveKeys(side);
+  switch (sk.targetType) {
+    case 'melee': case 'meleeRand': return [picked[0] || rnd(front)].filter(Boolean);
+    case 'any': return [picked[0] || rnd(foes)].filter(Boolean);
+    case 'self': return [casterKey];
+    case 'friend': return [picked[0] || rnd(friends)].filter(Boolean);
+    case 'friendMelee': return picked.length ? [...picked] : [...front];
+    case 'friendAndSelf': {
+      const f = picked[0] || rnd(friends.filter(k => k !== casterKey));
+      return f && f !== casterKey ? [f, casterKey] : [casterKey];
+    }
+    case 'meleeAndRand': {
+      const m = picked[0] || rnd(front);
+      return m ? [m, ...randN(foes, 1, [m])] : [];
+    }
+    case 'meleeAndRand2': {
+      const m = picked[0] || rnd(front);
+      return m ? [m, ...randN(foes, 2, [m])] : [];
+    }
+    case 'selfAndfriendMelee': return [casterKey, ...front.filter(k => k !== casterKey)];
+  }
+  return [];
+}
+
+// ---- targetPosion：受影响格子展开 ----
+// 偏移格式 "dcol,drow;…"：第一坐标=左右（列偏移），第二坐标=前后（行偏移，+1=目标背后）。
+// 背后=远离对方一侧：敌方行号+1（向深处），我方行号-1（向远行）。
+// 对每个最终目标各自展开一次；越界格或无存活单位的格自然过滤。
+function unitPos(key) {
+  if (key[0] === 'O') { const idx = Number(key.slice(1)); return { row: idx < 3 ? 1 : 2, col: idx % 3 + 1 }; }
+  const [row, col] = key.split(',').map(Number);
+  return { row, col };
+}
+function keyOfPos(side, row, col) {
+  if (side === 'foe') return (row >= 1 && row <= 3 && col >= 1 && col <= 5) ? row + ',' + col : null;
+  return (row >= 1 && row <= 2 && col >= 1 && col <= 3) ? 'O' + ((row - 1) * 3 + col - 1) : null;
+}
+function offsetKey(targetKey, dcol, drow) {
+  const side = sideOf(targetKey);
+  const p = unitPos(targetKey);
+  return keyOfPos(side, side === 'foe' ? p.row + drow : p.row - drow, p.col + dcol);
+}
+function rangeCells(sk, targets) {
+  let offs = String(sk.targetPosion || '0,0').split(';').map(s => s.split(',').map(Number));
+  offs = offs.filter(a => a.length === 2 && a.every(Number.isFinite));
+  if (!offs.length) offs = [[0, 0]]; // J 列格式异常（如单个"0"）兜底为自身格
+  const out = new Set();
+  for (const t of targets) for (const [dc, dr] of offs) {
+    const k = offsetKey(t, dc, dr);
+    if (k) out.add(k);
+  }
+  return [...out];
+}
+function expandTargets(casterKey, sk, targets) {
+  return rangeCells(sk, targets).filter(k => { const u = getUnit(k); return u && u.alive; });
+}
+
+// ---- 结算 ----
+function applyDamage(key, dmg) {
+  const u = getUnit(key);
+  const absorbed = Math.min(u.shield, dmg);
+  u.shield -= absorbed;
+  u.hp = Math.max(0, u.hp - (dmg - absorbed));
+  log(`  → ${u.name} 受到 ${dmg} 点伤害（护甲吸收 ${absorbed}）❤${u.hp}${u.shield ? ' 🛡' + u.shield : ''}`, 'warn');
+  if (u.hp <= 0 && u.alive) {
+    u.alive = false;
+    log(`  ☠️ ${u.name} 阵亡`, 'warn');
+    battle.dying[key] = Date.now() + 1000; // 动画期内保留格子渲染
+    setTimeout(() => {
+      if (battle.dying[key] && Date.now() >= battle.dying[key]) {
+        delete battle.dying[key];
+        if (battle.phase === 'fight' && battle.active) renderBattle();
+      }
+    }, 1100);
+  }
+}
+function checkEnd() {
+  if (!battle.active) return true;
+  if (!aliveKeys('foe').length) { endBattle(true); return true; }
+  if (!aliveKeys('ours').length) { endBattle(false); return true; }
+  return false;
+}
+function releaseSkill(casterKey, skillTag, picked, lockedTargets) {
+  const sk = GAME_DATA.skills[skillTag];
+  if (!sk) return false;
+  const caster = getUnit(casterKey);
+  // 敌方瞄准生效时传 lockedTargets（开战时锁定的目标，不重选）；其余按规则解析
+  const targets = lockedTargets || finalTargets(casterKey, sk, picked || []);
+  if (!targets.length) {
+    log(`⚠️ 技能 ${skillTag}（${sk.name}）无法选定目标，请检查配置`, 'warn');
+    return false;
+  }
+  log(`✦ ${caster.name} 释放【${sk.name}】`, 'good');
+  // targetPosion 展开：主目标 → 全部受影响格子（相邻/同行/整列等）
+  const affected = expandTargets(casterKey, sk, targets);
+  if (!affected.length) {
+    log(`  → 【${sk.name}】波及范围内没有存活单位，落空`, 'dim');
+    return false;
+  }
+  if (affected.length !== targets.length || affected.some(k => !targets.includes(k)))
+    log(`  → 波及 ${affected.length} 个单位：${affected.map(k => getUnit(k).name).join('、')}`, 'dim');
+  // 释放反馈：记录受影响单位结算前快照，供血/盾条从旧值动画过渡
+  const snap = k => { const v = getUnit(k); if (v && !battle.fxPrev[k]) battle.fxPrev[k] = { hp: v.hp, sh: v.shield }; };
+  affected.forEach(snap);
+  if (sk.shield > 0 && ENEMY_TARGET.includes(sk.targetType)) snap(casterKey);
+  // 伤害 = dmg + dmgShieldPara * 释放者当前护甲（护甲只作加成，不消耗）
+  const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+  if (dmg > 0) for (const k of affected) {
+    applyDamage(k, dmg);
+    battle.fx.push({ key: k, text: '-' + dmg, cls: 'fxDmg', hit: true });
+  }
+  if (sk.shield > 0) {
+    if (ENEMY_TARGET.includes(sk.targetType)) {
+      caster.shield += sk.shield;
+      battle.fx.push({ key: casterKey, text: '+' + sk.shield + ' 🛡', cls: 'fxShield' });
+      log(`  → ${caster.name} 获得 ${sk.shield} 点护甲（🛡${caster.shield}）`, 'good');
+    } else {
+      for (const k of affected) {
+        const u = getUnit(k);
+        u.shield += sk.shield;
+        battle.fx.push({ key: k, text: '+' + sk.shield + ' 🛡', cls: 'fxShield' });
+        log(`  → ${u.name} 获得 ${sk.shield} 点护甲（🛡${u.shield}）`, 'good');
+      }
+    }
+  }
+  // 无数值效果（连击/蓄力类，效果未实装）也要留痕，避免看起来"释放了但什么都没发生"
+  if (dmg <= 0 && sk.shield <= 0) log(`  → 效果：${sk.desc}（连击类效果未实装，仅记录）`, 'dim');
+  // 施法晃动：释放者 + 全部受影响单位格同步抖一下（已标记受击闪动的格子不重复叠）
+  const castKeys = new Set([casterKey, ...affected]);
+  for (const k of castKeys) {
+    const e = battle.fx.find(x => x.key === k);
+    if (e) e.cast = true;
+    else battle.fx.push({ key: k, cast: true });
+  }
+  renderBattle();
+  const deaths = Object.keys(battle.dying).length;
+  if (deaths && battle.active) setTimeout(checkEnd, 1000); // 先播完死亡动画再判定胜负
+  else checkEnd();
+  return true;
+}
+
+// ---- 开战流程 ----
+function endBattle(win) {
+  battle.active = false;
+  battle.phase = 'deploy'; battle.stage = ''; battle.inputLock = false;
+  battle.aims = [];
+  $('#battleScreen').classList.add('hidden');
+  $('#mapScreen').classList.remove('hidden');
+  $('#btnDeploy').textContent = '布阵结束';
+  $('#btnDeploy').classList.remove('hidden');
+  $('#btnReroll').classList.add('hidden');
+  const rows = [[], []];
+  battle.deploy.forEach((t, i) => rows[i < 3 ? 0 : 1].push(t ? GAME_DATA.heroes[t].name : '空'));
+  const placed = rows.map((r, i) => `第${i + 1}行：${r.join('、')}`).join('　|　');
+  if (win) {
+    log(`⚔️ 敌方全灭，战斗胜利（${placed}）`, 'good');
+    grantRewards(battle.rewards);
+    if (battle.extra === 'shop') log('🏪 此处有商店（未实现）', 'warn');
+    if (battle.pointType === 'battleBoss') advanceTier();
+  } else {
+    log(`⚔️ 我方全灭，战斗失败（${placed}），返回地图无奖励`, 'warn');
+  }
+  render();
+}
+
+// 一侧的 auto 技能在其行动回合开始时自动释放（目标按通用规则自动选定）
+function autoReleaseSide(side) {
+  for (const key of aliveKeys(side)) {
+    if (!battle.active) return;
+    const u = getUnit(key);
+    const skills = side === 'ours'
+      ? GAME_DATA.heroes[u.tag].skills
+      : (GAME_DATA.monsters[u.tag] || {}).skills || [];
+    for (const st of skills) {
+      if (!battle.active) return;
+      const sk = GAME_DATA.skills[st];
+      if (!sk || sk.useType !== 'auto') continue;
+      if (!skillUnlocked(sk.cost, diceTotals())) continue;
+      if (releaseSkill(key, st, []) && side === 'ours') {
+        const u = getUnit(key);
+        if (u && u.used) u.used.add(st); // auto 释放同样标记已用，左栏图标同步置灰
+      }
+    }
+  }
+}
+
+function usableChooseSkills(u) {
+  const totals = diceTotals();
+  const used = u.used || new Set();
+  return GAME_DATA.heroes[u.tag].skills.filter(st => {
+    const sk = GAME_DATA.skills[st];
+    // 各技能独立：本回合未释放过 + useType=choose + 骰子解锁
+    return sk && sk.useType === 'choose' && !used.has(st) && skillUnlocked(sk.cost, totals);
+  });
+}
+function hasUsableChoose(u) { return usableChooseSkills(u).length > 0; }
+
+function startOursStage() {
+  battle.stage = 'ours';
+  battle.inputLock = false;
+  battle.selHero = null; battle.selSkill = null;
+  battle.aims = []; // 每回合重瞄：先清除上一回合的瞄准与预览
+  for (const u of battle.ours) if (u) { u.acted = false; u.used = new Set(); } // 每回合重置
+  log(`—— 第 ${battle.turn} 回合 · 我方行动 ——`, 'dim');
+  autoReleaseSide('ours'); // 我方 auto 技能回合开始自动释放
+  if (!battle.active) return;
+  enemyAim(); // 我方 auto 之后：敌方全体按站位顺序瞄准锁定，目标身上挂持续结果预览
+  if (!battle.active) return;
+  for (const u of battle.ours) if (u && u.alive && !hasUsableChoose(u)) u.acted = true; // 无可用选择技的单位自动跳过
+  if (battle.ours.every(u => !u || !u.alive || u.acted)) { enemyPhase(); return; }
+  renderBattle();
+}
+
+// 敌方瞄准：按站位顺序（前排行先、行内按列）逐个把技能目标随机锁定（与 auto 同款规则）
+function enemyAim() {
+  battle.aims = [];
+  const keys = aliveKeys('foe').sort((a, b) =>
+    Number(a.split(',')[0]) - Number(b.split(',')[0]) || Number(a.split(',')[1]) - Number(b.split(',')[1]));
+  for (const k of keys) {
+    const u = battle.foes[k];
+    const skills = (GAME_DATA.monsters[u.tag] || {}).skills || [];
+    for (const st of skills) {
+      const sk = GAME_DATA.skills[st];
+      if (!sk || !skillUnlocked(sk.cost, {})) continue; // 怪物 cost=null → 无条件瞄准
+      const targets = finalTargets(k, sk, []); // 瞄准即锁定：随机结果此刻定死
+      if (!targets.length) { log(`⚠️ ${u.name} 的【${sk.name}】找不到瞄准目标，请检查配置`, 'warn'); continue; }
+      battle.aims.push({ casterKey: k, skillTag: st, targets });
+      log(`🎯 ${u.name} 瞄准 ${targets.map(tk => getUnit(tk).name).join('、')}（${sk.name}）`, 'warn');
+    }
+  }
+}
+
+// 敌方瞄准预览：按当前状态实时汇总各单位将承受的伤害/获得的护甲
+// （瞄准者死亡 → 其份额自动剔除；目标死亡 → 该目标预览消失；任何数值变化都在下次渲染时重算）
+function aimPreview() {
+  const pv = {};
+  for (const a of battle.aims) {
+    const caster = getUnit(a.casterKey), sk = GAME_DATA.skills[a.skillTag];
+    if (!caster || !caster.alive || !sk) continue;
+    const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+    const toCaster = ENEMY_TARGET.includes(sk.targetType);
+    // 与 releaseSkill 同口径：主目标按 targetPosion 展开成受影响单位
+    const affected = expandTargets(a.casterKey, sk, a.targets.filter(tk => { const t = getUnit(tk); return t && t.alive; }));
+    for (const tk of affected) {
+      const t = getUnit(tk);
+      if (!t || !t.alive) continue;
+      const e = pv[tk] = pv[tk] || { dmg: 0, shGain: 0 };
+      e.dmg += dmg;
+      if (!toCaster && sk.shield > 0) e.shGain += sk.shield;
+    }
+    if (toCaster && sk.shield > 0) { // 敌方向护甲技：预览加在释放者自己身上
+      const e = pv[a.casterKey] = pv[a.casterKey] || { dmg: 0, shGain: 0 };
+      e.shGain += sk.shield;
+    }
+  }
+  return pv;
+}
+
+async function enemyPhase() {
+  battle.stage = 'enemies';
+  battle.inputLock = true;
+  battle.selHero = null; battle.selSkill = null;
+  renderBattle();
+  log('—— 敌方行动 ——', 'dim');
+  try {
+    // 按瞄准锁定顺序（=瞄准时的站位顺序）逐个生效，目标用开战时锁定的，不重选
+    for (const aim of [...battle.aims]) {
+      if (!battle.active) return;
+      const remove = () => { battle.aims = battle.aims.filter(a => a !== aim); };
+      const caster = getUnit(aim.casterKey);
+      const sk = GAME_DATA.skills[aim.skillTag];
+      if (!caster || !caster.alive || !sk) { remove(); continue; } // 瞄准者已阵亡：瞄准作废（预览已随之消失）
+      if (!skillUnlocked(sk.cost, {})) { remove(); continue; }
+      const aliveT = aim.targets.filter(tk => { const t = getUnit(tk); return t && t.alive; });
+      if (!aliveT.length) {
+        remove();
+        log(`✦ ${caster.name} 的【${sk.name}】落空（瞄准目标已阵亡）`, 'dim');
+        renderBattle();
+        await sleep(400);
+        continue;
+      }
+      await sleep(500); // 逐个播报节奏
+      releaseSkill(aim.casterKey, aim.skillTag, aliveT, aliveT);
+      remove(); // 已生效的瞄准从列表剔除，剩余预览随之收缩
+    }
+  } catch (e) {
+    // 异常必须兜底：否则 inputLock 永久为 true，左侧整体不可点击
+    log(`⚠️ 敌方阶段异常：${e && e.message ? e.message : e}（流程已跳过）`, 'warn');
+    console.error('enemyPhase error:', e);
+  } finally {
+    battle.aims = [];
+    if (battle.active) {
+      await sleep(400);
+      nextTurn();
+    }
+  }
+}
+
+function nextTurn() {
+  battle.turn++;
+  battle.phase = 'dice';
+  battle.inputLock = false; // 无论如何都恢复输入
+  battle.rerollLeft = 2;
+  rollAllDice();
+  log(`—— 第 ${battle.turn} 回合 · 投骰子 ——`, 'dim');
+  $('#btnDeploy').classList.remove('hidden');
+  $('#btnDeploy').textContent = '开 战';
+  $('#btnReroll').classList.remove('hidden');
+  updateRerollBtn();
+  renderBattle();
+}
+
+// ---- 玩家交互 ----
+function aimTargetsSet() {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.selHero == null || !battle.selSkill) return new Set();
+  const sk = GAME_DATA.skills[battle.selSkill];
+  if (!sk || sk.useType !== 'choose') return new Set();
+  // 可点格 = 各合法主目标的 targetPosion 范围并集（点选格=范围中心，允许空格）：
+  // 对称偏移下点选格被候选覆盖 ⇔ 候选被点选格覆盖，故必波及至少 1 个存活单位
+  const set = new Set();
+  for (const c of targetCandidates('O' + battle.selHero, sk.targetType))
+    for (const k of rangeCells(sk, [c])) set.add(k);
+  return set;
+}
+
+// 点击格 → 主目标解析：点选格=范围中心（允许空格，如横扫点两单位之间的空位）。
+// 前提：该格在某候选主目标的展开范围内（可点集合已保证），且偏移对称 →
+// 以点选格为中心展开后仍覆盖原候选，必有单位被波及，预览与实际生效一致。
+function resolvePick(casterKey, sk, cellKey) {
+  const cands = targetCandidates(casterKey, sk.targetType);
+  const covered = cands.some(c => rangeCells(sk, [c]).includes(cellKey));
+  return covered ? cellKey : null;
+}
+
+function onChipClick(idx, st) {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+  const u = battle.ours[idx];
+  if (!u || !u.alive) return;
+  const sk = GAME_DATA.skills[st];
+  // 各技能独立：仅拦截本回合已释放过的那个技能，其余技能仍可继续选中
+  if (!sk || sk.useType !== 'choose' || !skillUnlocked(sk.cost, diceTotals())) return;
+  if (u.used && u.used.has(st)) { log(`${u.name} 本回合已释放过【${sk.name}】`, 'dim'); return; }
+  if (battle.selHero === idx && battle.selSkill === st) {
+    // 再点同一技能 → 取消选中
+    battle.selHero = null; battle.selSkill = null;
+  } else {
+    // 点其他技能 → 切换到新技能（同时选中其所属英雄）
+    battle.selHero = idx;
+    battle.selSkill = st;
+  }
+  renderBattle();
+}
+
+function doRelease(targetKey) {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+  if (battle.selHero == null || !battle.selSkill) return;
+  if (!aimTargetsSet().has(targetKey)) return;
+  const u = battle.ours[battle.selHero];
+  const st = battle.selSkill;
+  const pick = resolvePick('O' + battle.selHero, GAME_DATA.skills[st], targetKey);
+  if (!pick) return;
+  releaseSkill('O' + battle.selHero, st, [pick]);
+  if (!battle.active) return;
+  if (u.used) u.used.add(st); // 只标记这一个技能已释放
+  u.acted = !hasUsableChoose(u); // 剩余无可用选择技时才算行动完
+  battle.selHero = null; battle.selSkill = null;
+  if (battle.ours.every(x => !x || !x.alive || x.acted)) { enemyPhase(); return; }
+  renderBattle();
+}
+
+// ---- 渲染 ----
+// 单位格顶部血条：hp 比例条（我方绿 / 敌方红）+ 护甲蓝色附条，数字叠在条上
+// pv=敌方瞄准预览 {hpAfter,shAfter,lethal}：条上叠加将持续显示的预览段（虚化=将失去，浅色=将获得），
+// 且数字按技能预览同款显示"当前→结算后"（预览期 hpnum 只显示血量变化，护甲数值由盾条单独承载；lethal 加 ✕）
+function hpBarHtml(u, color, pv) {
+  if (!u) return '';
+  const max = u.maxHp || u.hp || 1;
+  const ratio = Math.max(0, Math.min(1, u.hp / max));
+  const shRatio = u.shield ? Math.min(1, u.shield / max) : 0;
+  const seg = (cls, from, to) => {
+    const l = Math.max(0, Math.min(1, from)), r = Math.max(0, Math.min(1, to));
+    return r > l ? `<span class="${cls}" style="left:${(l * 100).toFixed(1)}%;width:${((r - l) * 100).toFixed(1)}%"></span>` : '';
+  };
+  let hpExtra = '', shExtra = '', hpText, shText;
+  if (pv) {
+    if (pv.hpAfter < u.hp) hpExtra = seg('aimLossSeg', pv.hpAfter / max, u.hp / max);
+    if (pv.shAfter < u.shield) shExtra = seg('aimLossSeg', pv.shAfter / max, u.shield / max);
+    else if (pv.shAfter > u.shield) shExtra = seg('aimGainSeg', u.shield / max, pv.shAfter / max);
+    hpText = pv.hpAfter < u.hp ? `${u.hp}→${pv.hpAfter}` : `${u.hp}`;
+    shText = pv.shAfter !== u.shield ? `${u.shield}→${pv.shAfter}` : `${u.shield}`;
+  } else {
+    hpText = `${u.hp}${u.shield ? '+' + u.shield : ''}`;
+    shText = `${u.shield}`;
+  }
+  const showSh = u.shield || (pv && pv.shAfter > 0);
+  return `<span class="hpbarWrap"><span class="hpbar">`
+    + `<span class="hpfill" style="width:${(ratio * 100).toFixed(1)}%;background:${color}"></span>${hpExtra}`
+    + `<span class="hpnum">${hpText}</span>`
+    + (pv && pv.lethal ? '<span class="aimCross">✕</span>' : '') + `</span>`
+    + (showSh ? `<span class="shbar"><span class="shfill" style="width:${(shRatio * 100).toFixed(1)}%"></span>${shExtra}`
+      + `<span class="shnum">${shText}</span></span>` : '')
+    + `</span>`;
+}
+
+function phaseHint() {
+  if (battle.phase === 'deploy')
+    return '布阵阶段：拖动我方英雄到任意空格可换位；敌军来自 mapPoint.battleContent 随机抽取，'
+      + '按 battleScene 站位摆放；敌方站位区块按 pointType 读取 configValue.battleMap。';
+  if (battle.phase === 'dice')
+    return '投骰子阶段：点击骰子可锁定 / 解锁（🔒 金框），锁定的骰子在"重新投骰"时保持不变（每回合最多重投 2 次）。'
+      + '骰子点数只决定本回合技能是否可释放，释放时不消耗。';
+  return '开战（回合制）：① 点击开战后，敌方全体立刻按站位顺序瞄准并锁定目标（每回合重瞄），'
+    + '被瞄准的我方单位血/盾条上持续显示结果预览（虚化段=将失去，浅色段=将获得，数字显示当前→结算后，✕/☠=合计将致死）；'
+    + '瞄准者被我方打死或我方状态变化后，预览实时重算；未选技能时悬停敌方单位，'
+    + '显示虚线曲线+箭头指出其锁定的目标，并在受影响的我方单位上以同款样式预览其预期伤害（范围技逐个标注）。'
+    + '② 我方行动——点击左侧菜单中的技能（再点同一技能取消，点其他技能切换，'
+    + '点战场外任意空白处也可取消）→ 悬停可释放目标会高亮并预览效果，点击释放；'
+    + '悬停/点击不可释放的目标会飘字提示，战场上的英雄格点击不再选中；'
+    + 'auto 技能在瞄准之前自动释放（找不到目标 / 效果异常会记入日志）；无可用技能的单位自动跳过，'
+    + '也可点【结束行动】直接跳过剩余技能进入敌方阶段。'
+    + '③ 我方全部行动完后，敌方按瞄准顺序（前排先）依次生效：用锁定目标释放，目标已阵亡则落空。'
+    + '④ 敌方行动完进入下一回合，重新投骰子。一方全灭后战斗结束。';
+}
+
+function renderBattle() {
+  const field = $('#battleField');
+  field.innerHTML = '';
+  $('#bTurn').textContent = 'Turn ' + battle.turn;
+  // 敌方瞄准预览：按当前状态实时计算（瞄准者/目标死亡自动剔除，数值变化自动重算）
+  const aimPv = battle.phase === 'fight' ? aimPreview() : {};
+  const pvFor = key => {
+    const e = aimPv[key];
+    if (!e) return null;
+    const u = getUnit(key);
+    if (!u || !u.alive) return null;
+    const max = u.maxHp || u.hp || 1;
+    const absorbed = Math.min(u.shield, e.dmg);
+    const hpAfter = Math.max(0, u.hp - (e.dmg - absorbed));
+    const shAfter = Math.max(0, u.shield - absorbed) + e.shGain;
+    return { hpAfter, shAfter, lethal: e.dmg > 0 && hpAfter <= 0 };
+  };
+  // 敌方区：X 从 3（远）到 1（近，贴我方），Y 1-5
+  for (let x = 3; x >= 1; x--) {
+    for (let y = 1; y <= 5; y++) {
+      const div = document.createElement('div');
+      const key = x + ',' + y;
+      if (!battle.block.has(key)) { div.className = 'bCell void'; field.appendChild(div); continue; }
+      div.className = 'bCell enemy';
+      const f = battle.foes[key];
+      const m = battle.enemies[key];
+      if (m && (!f || f.alive)) {
+        div.classList.add('occupied');
+        div.dataset.key = key; // 供效果预览按 key 定位格子
+        const md = GAME_DATA.monsters[m] || { name: m, baseHp: '?' };
+        const hpLine = (battle.phase === 'fight' && f) ? hpBarHtml(f, '#d9534f', pvFor(key)) : '';
+        div.innerHTML = `<span class="coord">${x},${y}</span>${hpLine}`
+          + `<span class="ico">${MONSTER_EMOJI[m] || '👹'}</span><span class="mname">${md.name}</span>`;
+      } else if (f && !f.alive && battle.dying[key]) {
+        div.classList.add('occupied', 'dying'); // 阵亡动画期内保留展示
+        div.dataset.key = key; // 供反馈（飘字/条过渡）定位
+        const md = GAME_DATA.monsters[m] || { name: m };
+        const hpLine = (battle.phase === 'fight' && f) ? hpBarHtml(f, '#d9534f') : '';
+        div.innerHTML = `<span class="coord">${x},${y}</span>${hpLine}`
+          + `<span class="ico">${MONSTER_EMOJI[m] || '👹'}</span><span class="mname">${md.name}</span>`;
+      } else {
+        div.dataset.key = key; // 空格也带 key：供技能范围框定位
+        div.innerHTML = `<span class="coord">${x},${y}</span>`;
+      }
+      if (battle.phase === 'fight') bindTargetCell(div, key); // 所有非 void 格统一绑定：范围内空格也可悬停/点击
+      field.appendChild(div);
+    }
+  }
+  // 我方区：两行，3 列居中放在 5 列网格的第 2/3/4 列
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 5; c++) {
+      const div = document.createElement('div');
+      if (c === 0 || c === 4) { div.className = 'bCell void'; field.appendChild(div); continue; }
+      const idx = r * 3 + (c - 1); // 0..5
+      const tag = battle.deploy[idx];
+      const u = battle.ours[idx];
+      // 开战后阵亡单位从棋盘移除（死亡动画期内保留）
+      const dyingO = u && !u.alive && battle.dying['O' + idx];
+      const shown = tag && (!u || u.alive || dyingO);
+      div.className = 'bCell ours' + (shown ? ' occupied' : '') + (dyingO ? ' dying' : '');
+      div.dataset.idx = idx;
+      div.dataset.key = 'O' + idx; // 空槽也带 key：供技能范围框定位
+      if (shown) {
+        const h = GAME_DATA.heroes[tag];
+        div.dataset.key = 'O' + idx; // 供效果预览按 key 定位格子
+        const pv = battle.phase === 'fight' ? pvFor('O' + idx) : null;
+        const hpLine = (battle.phase === 'fight' && u) ? hpBarHtml(u, '#4caf78', pv) : '';
+        div.innerHTML = `<span class="coord">${r + 1},${c}</span>${hpLine}`
+          + `<span class="ico">${HERO_EMOJI[tag] || (CLASS_INFO[h.cls] || ['?', '❓'])[1]}</span><span class="mname">${h.name}</span>`;
+        if (pv && pv.lethal) div.insertAdjacentHTML('beforeend', '<span class="aimDeath">☠</span>'); // 死亡预告
+        if (battle.phase === 'deploy') {
+          div.draggable = true;
+          div.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', String(idx)));
+        }
+        if (battle.phase === 'fight' && battle.selHero === idx) div.classList.add('selUnit');
+      }
+      if (battle.phase === 'fight') bindTargetCell(div, 'O' + idx); // 空槽也绑定：范围内可悬停/点击
+      if (battle.phase === 'deploy') {
+        div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('dragOver'); });
+        div.addEventListener('dragleave', () => div.classList.remove('dragOver'));
+        div.addEventListener('drop', e => {
+          e.preventDefault();
+          div.classList.remove('dragOver');
+          const from = Number(e.dataTransfer.getData('text/plain'));
+          if (!Number.isNaN(from) && from !== idx) {
+            [battle.deploy[from], battle.deploy[idx]] = [battle.deploy[idx], battle.deploy[from]];
+            // 单位状态跟随槽位交换，保持 battle.ours[idx] 与棋盘格对齐
+            [battle.ours[from], battle.ours[idx]] = [battle.ours[idx], battle.ours[from]];
+            if (battle.ours[from]) battle.ours[from].idx = from;
+            if (battle.ours[idx]) battle.ours[idx].idx = idx;
+            renderBattle();
+          }
+        });
+      }
+      field.appendChild(div);
+    }
+  }
+  field.classList.toggle('locked', battle.phase === 'dice');
+  // 结束行动按钮：仅开战阶段我方行动中显示
+  $('#btnEndAct').classList.toggle('hidden',
+    !(battle.phase === 'fight' && battle.stage === 'ours' && !battle.inputLock));
+  $('#oursZoneLabel').textContent = battle.phase === 'dice'
+    ? '我方阵营（投骰子阶段，站位已锁定）'
+    : battle.phase === 'fight'
+      ? '我方阵营（开战中：点击左栏技能 → 点击目标释放）'
+      : '我方阵营（6 格，初始上 3 人，拖动调整站位）';
+  $('#bHint').innerHTML = phaseHint();
+  // 左栏
+  if (battle.phase === 'dice') renderDicePanel();
+  else if (battle.phase === 'fight') renderFightPanel();
+  else renderDeployPanel();
+  drainFx(); // 播放本次释放反馈（飘字/条过渡/受击闪动），只播一次
+}
+
+// ---- 释放反馈播放：renderBattle 重建 DOM 后调用，排空 battle.fx / fxPrev ----
+function drainFx() {
+  const fx = battle.fx, prev = battle.fxPrev;
+  battle.fx = []; battle.fxPrev = {};
+  if (!fx.length && !Object.keys(prev).length) return;
+  requestAnimationFrame(() => {
+    // 1) 血/盾条从结算前值过渡到当前值（宽度 CSS transition；死亡格保留血条同步缩到 0）
+    for (const [key, pv] of Object.entries(prev)) {
+      const cell = document.querySelector(`.bCell[data-key="${key}"]`);
+      if (!cell) continue;
+      const u = getUnit(key);
+      const max = (u && u.maxHp) || 1;
+      const hpFill = cell.querySelector('.hpfill');
+      if (hpFill) {
+        hpFill.style.transition = 'none';
+        hpFill.style.width = (Math.max(0, Math.min(1, pv.hp / max)) * 100).toFixed(1) + '%';
+        void hpFill.offsetWidth; // 强制回流，确保过渡起点生效
+        requestAnimationFrame(() => { hpFill.style.transition = ''; hpFill.style.width = (Math.max(0, Math.min(1, u.hp / max)) * 100).toFixed(1) + '%'; });
+      }
+      const shFill = cell.querySelector('.shfill');
+      if (shFill) {
+        shFill.style.transition = 'none';
+        shFill.style.width = (Math.max(0, Math.min(1, pv.sh / max)) * 100).toFixed(1) + '%';
+        void shFill.offsetWidth;
+        requestAnimationFrame(() => { shFill.style.transition = ''; shFill.style.width = (Math.max(0, Math.min(1, u.shield / max)) * 100).toFixed(1) + '%'; });
+      }
+    }
+    // 2) 飘字（同格多条纵向错开）+ 受击闪动 + 施法晃动（同格受击优先）
+    const perKey = {};
+    const hitKeys = new Set(fx.filter(e => e.hit).map(e => e.key));
+    for (const e of fx) {
+      const cell = document.querySelector(`.bCell[data-key="${e.key}"]`);
+      if (!cell) continue;
+      const n = perKey[e.key] = (perKey[e.key] || 0) + 1;
+      const s = document.createElement('span');
+      s.className = 'fxFloat ' + e.cls;
+      s.style.marginTop = (-(n - 1) * 22) + 'px';
+      s.textContent = e.text;
+      cell.appendChild(s);
+      setTimeout(() => s.remove(), 1100);
+      if (cell.classList.contains('dying')) continue; // 死亡格的 animation 被 dieOut 占用，不叠 hit/cast
+      if (e.hit) {
+        cell.classList.add('hitFx');
+        setTimeout(() => cell.classList.remove('hitFx'), 420);
+      } else if (e.cast && !hitKeys.has(e.key)) {
+        cell.classList.add('castFx');
+        setTimeout(() => cell.classList.remove('castFx'), 460);
+      }
+    }
+  });
+}
+
+// 空槽位占位行：与英雄行同高，行序=1-6 号位
+function emptySlotRow(i) {
+  return `<div class="dHeroRow emptySlot"><span class="emptyNote">${i + 1} 号位（空）</span></div>`;
+}
+
+function renderDeployPanel() {
+  $('#bStats').innerHTML = '<span>⚔️ 0</span><span>🛡️ 0</span><span>🎲 0</span><span>⭐ 0</span>';
+  $('#bTeamRows').innerHTML = battle.deploy.map((tag, i) => {
+    if (!tag) return emptySlotRow(i);
+    const h = GAME_DATA.heroes[tag];
+    const r = i < 3 ? 1 : 2, c = (i % 3) + 1;
+    // 与战中统一：dHeroRow 行（42px 头像框 + 名字 + 右对齐站位号）
+    return `<div class="dHeroRow"><span class="dAvatar" title="${h.name}">${HERO_EMOJI[tag] || (CLASS_INFO[h.cls] || ['?', '❓'])[1]}</span>`
+      + `<b>${h.name}</b><span class="dPos">(${r},${c})</span></div>`;
+  }).join('');
+}
+
+// ================= 战斗（投骰子阶段）=================
+function rollAllDice() {
+  const prev = battle.rolls;
+  battle.rolls = battle.deploy.map((tag, i) => {
+    if (!tag) return null;
+    const old = prev.find(r => r.idx === i);
+    if (old && old.locked) return old; // 锁定的骰子本轮随机不变
+    const n = 1 + Math.floor(Math.random() * 6); // 随机 1-6，选 slotNType/slotNNum
+    const [type, num] = GAME_DATA.heroes[tag].slots[n - 1];
+    return { idx: i, tag, roll: n, type, num, locked: old ? old.locked : false };
+  }).filter(Boolean);
+}
+
+function diceTotals() {
+  const t = { red: 0, blue: 0, green: 0, yellow: 0 };
+  for (const r of battle.rolls) if (t[r.type] !== undefined) t[r.type] += r.num;
+  return t;
+}
+
+function skillUnlocked(cost, totals) {
+  return (cost || []).every(([c, n]) => (totals[c] || 0) >= Number(n));
+}
+
+// 悬停骰子的 tips：该英雄 6 个骰面各自会掷出什么（当前掷中的面金框高亮）
+function slotTipHtml(tag, curRoll, caption) {
+  const h = GAME_DATA.heroes[tag];
+  if (!h) return '';
+  const gems = h.slots.map(([t, n], i) => {
+    const cur = curRoll && curRoll.roll === i + 1;
+    return `<span class="tGem${cur ? ' cur' : ''}" style="background:${SLOT_COLOR[t] || '#777'}">`
+      + `${DICE_ICON[t] || ''}${n > 1 ? `<i>${n}</i>` : ''}</span>`;
+  }).join('');
+  return `<span class="slotTip"><span class="tipRow">${gems}</span>`
+    + (caption ? `<span class="tipCap">${caption}</span>` : '') + `</span>`;
+}
+
+// ---- 技能效果预览（选中技能后悬停目标格）----
+function clearPreviews() {
+  for (const el of document.querySelectorAll('.pvLayer, .pvLostSeg, .pvGainSeg, .pvCross, .pvGhostBar')) el.remove();
+  clearSkRange(); // 范围外沿框
+  // 恢复被预览替换过的条上数值
+  for (const el of document.querySelectorAll('.hpnum[data-orig], .shnum[data-orig]')) {
+    el.textContent = el.dataset.orig;
+    delete el.dataset.orig;
+  }
+}
+function cellEl(key) {
+  return document.querySelector(`.bCell[data-key="${CSS.escape(key)}"]`);
+}
+// ---- 目标格交互（选中技能后）：有效目标悬停才高亮+预览，无效目标飘字提示 ----
+function denyFloat(cell) {
+  if (!cell || cell.querySelector('.denyFloat')) return; // 已有飘字不重复叠
+  const s = document.createElement('span');
+  s.className = 'denyFloat';
+  s.textContent = '不能对该目标释放';
+  cell.appendChild(s);
+  setTimeout(() => s.remove(), 1150);
+}
+function bindTargetCell(div, key) {
+  div.addEventListener('mouseenter', () => {
+    if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+    if (battle.selHero == null || !battle.selSkill) {
+      if (key[0] !== 'O') { // 非选技状态悬停敌方：虚线曲线指出锁定目标 + 目标身上预览预期伤害
+        drawAimLines(key);
+        showEnemyPreview(key);
+      }
+      return;
+    }
+    if (aimTargetsSet().has(key)) { div.classList.add('tCand'); showPreview(key); }
+    else denyFloat(div);
+  });
+  div.addEventListener('mouseleave', () => { div.classList.remove('tCand'); clearPreviews(); clearAimLines(); });
+  div.addEventListener('click', () => {
+    if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+    if (battle.selHero == null || !battle.selSkill) return;
+    if (aimTargetsSet().has(key)) doRelease(key);
+    else denyFloat(div);
+  });
+}
+
+// ---- 敌方瞄准指示线（SVG 覆盖层，renderBattle 重建棋盘时自动移除）----
+function aimSvg() {
+  let svg = document.getElementById('aimLinesSvg');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'aimLinesSvg';
+    svg.innerHTML = '<defs><marker id="aimArrow" viewBox="0 0 10 10" refX="8" refY="5"'
+      + ' markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">'
+      + '<path d="M0,0 L10,5 L0,10 z" fill="#ff5b4d"/></marker></defs>';
+    $('#battleField').appendChild(svg);
+  }
+  return svg;
+}
+function clearAimLines() {
+  const svg = document.getElementById('aimLinesSvg');
+  if (svg) svg.querySelectorAll('path.aimLine').forEach(p => p.remove());
+}
+
+// ---- 技能范围外沿：连续区域合并成一整个细红框（SVG 覆盖层）----
+// 逐格判定四向几何邻居，只为无邻居的边画线，并向格间 gap 延伸使相邻段的拐角连续。
+function skRangeSvg() {
+  let svg = document.getElementById('skRangeSvg');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'skRangeSvg';
+    $('#battleField').appendChild(svg);
+  }
+  return svg;
+}
+function clearSkRange() {
+  const svg = document.getElementById('skRangeSvg');
+  if (svg) svg.remove();
+}
+function drawSkRange(keys) {
+  clearSkRange();
+  const fRect = $('#battleField').getBoundingClientRect();
+  const cells = [];
+  for (const k of keys) {
+    const el = cellEl(k);
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    cells.push({ l: r.left - fRect.left, t: r.top - fRect.top, r: r.right - fRect.left, b: r.bottom - fRect.top });
+  }
+  if (!cells.length) return;
+  const gap = 6, near = (a, b) => Math.abs(a - b) < 2;
+  const nb = (c, d) => cells.some(o => o !== c && (
+    d === 't' ? near(o.l, c.l) && near(o.b + gap, c.t) :
+    d === 'b' ? near(o.l, c.l) && near(o.t - gap, c.b) :
+    d === 'l' ? near(o.t, c.t) && near(o.r + gap, c.l) :
+                near(o.t, c.t) && near(o.l - gap, c.r)));
+  let d = '';
+  for (const c of cells) {
+    const L = nb(c, 'l'), R = nb(c, 'r'), T = nb(c, 't'), B = nb(c, 'b');
+    if (!T) d += `M${c.l - (L ? gap : 0)},${c.t} L${c.r + (R ? gap : 0)},${c.t}`;
+    if (!B) d += `M${c.l - (L ? gap : 0)},${c.b} L${c.r + (R ? gap : 0)},${c.b}`;
+    if (!L) d += `M${c.l},${c.t - (T ? gap : 0)} L${c.l},${c.b + (B ? gap : 0)}`;
+    if (!R) d += `M${c.r},${c.t - (T ? gap : 0)} L${c.r},${c.b + (B ? gap : 0)}`;
+  }
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  skRangeSvg().appendChild(path);
+}
+function bezPoint(x1, y1, cx, cy, x2, y2, t) {
+  const u = 1 - t;
+  return { x: u * u * x1 + 2 * u * t * cx + t * t * x2, y: u * u * y1 + 2 * u * t * cy + t * t * y2 };
+}
+function drawAimLines(casterKey) {
+  const aims = battle.aims.filter(a => a.casterKey === casterKey);
+  const cCell = cellEl(casterKey);
+  if (!aims.length || !cCell) return;
+  const svg = aimSvg();
+  const fRect = $('#battleField').getBoundingClientRect();
+  const cRect = cCell.getBoundingClientRect();
+  let side = 1;
+  for (const a of aims) {
+    for (const tk of a.targets) {
+      const tCell = cellEl(tk);
+      if (!tCell) continue;
+      const tRect = tCell.getBoundingClientRect();
+      const x1 = cRect.left + cRect.width / 2 - fRect.left, y1 = cRect.top + cRect.height / 2 - fRect.top;
+      const x2 = tRect.left + tRect.width / 2 - fRect.left, y2 = tRect.top + tRect.height / 2 - fRect.top;
+      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+      // 控制点取中点垂直偏移（多目标时弯曲方向交替，避免完全重叠）
+      const off = Math.min(46, len * 0.25) * side; side = -side;
+      const cx = (x1 + x2) / 2 - (dy / len) * off, cy = (y1 + y2) / 2 + (dx / len) * off;
+      // 起止点收到格子边缘，终点留出箭头空间
+      const p1 = bezPoint(x1, y1, cx, cy, x2, y2, (cRect.width / 2 + 3) / len);
+      const p2 = bezPoint(x1, y1, cx, cy, x2, y2, 1 - (tRect.width / 2 + 7) / len);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'aimLine');
+      path.setAttribute('marker-end', 'url(#aimArrow)');
+      path.setAttribute('d', `M${p1.x.toFixed(1)},${p1.y.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`);
+      svg.appendChild(path);
+    }
+  }
+}
+
+// 按 releaseSkill 同款口径结算预览数值（不改真实状态）
+function calcPreview(casterKey, sk, targetKey) {
+  const caster = getUnit(casterKey), t = getUnit(targetKey);
+  if (!caster || !t) return null;
+  const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+  const toCaster = ENEMY_TARGET.includes(sk.targetType); // 敌方向技能：护甲加给释放者
+  const absorbed = Math.min(t.shield, dmg);
+  const hpAfter = Math.max(0, t.hp - (dmg - absorbed));
+  const tShAfter = t.shield - absorbed + (!toCaster && sk.shield > 0 ? sk.shield : 0);
+  const cShAfter = caster.shield + (toCaster && sk.shield > 0 ? sk.shield : 0);
+  return { dmg, absorbed, hpAfter, tShAfter, cShAfter, lethal: dmg > 0 && hpAfter <= 0 };
+}
+// 条上数值换成 "当前→结算后"，mouseleave 时由 clearPreviews 恢复
+function swapBarText(barEl, text) {
+  const num = barEl && (barEl.querySelector('.hpnum') || barEl.querySelector('.shnum'));
+  if (!num || num.dataset.orig) return;
+  num.dataset.orig = num.textContent;
+  num.textContent = text;
+}
+// 条上 [from, to] 区间叠段：isLoss=虚化闪动（将失去），否则浅色（将获得）
+function segOverlay(barEl, fromRatio, toRatio, isLoss) {
+  if (!barEl || toRatio <= 0 || fromRatio >= 1) return;
+  const seg = document.createElement('span');
+  seg.className = isLoss ? 'pvLostSeg' : 'pvGainSeg';
+  seg.style.left = (Math.max(0, Math.min(1, fromRatio)) * 100).toFixed(1) + '%';
+  seg.style.width = (Math.max(0, Math.min(1, toRatio) - Math.max(0, Math.min(1, fromRatio))) * 100).toFixed(1) + '%';
+  barEl.appendChild(seg);
+}
+// 在单位格上叠加幽灵护甲条（原无护甲条时用虚线空条承载预览），可带预览数值
+function ghostShbar(cell, ratio, text) {
+  const wrap = cell.querySelector('.hpbarWrap');
+  if (!wrap) return;
+  const bar = document.createElement('span');
+  bar.className = 'shbar pvGhostBar';
+  const f = document.createElement('span');
+  f.className = 'shfill pvGhostSh';
+  f.style.width = (Math.max(0, Math.min(1, ratio)) * 100).toFixed(1) + '%';
+  bar.appendChild(f);
+  if (text) { const n = document.createElement('span'); n.className = 'shnum'; n.textContent = text; bar.appendChild(n); }
+  wrap.appendChild(bar);
+}
+// 在受影响单位格上叠加预览：大号伤害数字 + 血/盾条数值变化与区段 + 致死红叉
+// （我方选技悬停 / 非选技悬停敌方 两处共用，口径均为 calcPreview）
+function overlayPreview(cell, t, pv) {
+  const tMax = t.maxHp || 1;
+  // 大号伤害数字（格中央悬浮）
+  if (pv.dmg > 0) {
+    const layer = document.createElement('span');
+    layer.className = 'pvLayer';
+    layer.innerHTML = `<span class="pvDmg">${pv.dmg}</span>`;
+    cell.appendChild(layer);
+  }
+  // 血条：数值变化 + 将失去段虚化闪动 + 致死红叉
+  const hb = cell.querySelector('.hpbar');
+  if (hb && pv.dmg > 0) {
+    swapBarText(hb, `${t.hp}→${pv.hpAfter}`);
+    if (pv.hpAfter < t.hp) segOverlay(hb, pv.hpAfter / tMax, t.hp / tMax, true);
+    if (pv.lethal) { const c = document.createElement('span'); c.className = 'pvCross'; c.textContent = '✕'; hb.appendChild(c); }
+  }
+  // 盾条：数值变化 + 损失段/获得段
+  if (pv.tShAfter !== t.shield) {
+    const sb = cell.querySelector('.shbar');
+    if (sb) {
+      swapBarText(sb, `${t.shield}→${pv.tShAfter}`);
+      const lossTo = Math.min(t.shield, pv.tShAfter);
+      if (lossTo < t.shield) segOverlay(sb, lossTo / tMax, t.shield / tMax, true);
+      if (pv.tShAfter > t.shield) segOverlay(sb, t.shield / tMax, pv.tShAfter / tMax, false);
+    } else if (pv.tShAfter > 0) {
+      ghostShbar(cell, pv.tShAfter / tMax, `${t.shield}→${pv.tShAfter}`);
+    }
+  }
+}
+// 在单位格上叠加"自身获得护甲"预览（释放者/受辅单位通用）
+function overlayShGain(cell, u, shAfter) {
+  if (shAfter === u.shield || !cell) return;
+  const uMax = u.maxHp || 1;
+  const sb = cell.querySelector('.shbar');
+  if (sb) {
+    swapBarText(sb, `${u.shield}→${shAfter}`);
+    segOverlay(sb, u.shield / uMax, shAfter / uMax, false);
+  } else {
+    ghostShbar(cell, shAfter / uMax, `${u.shield}→${shAfter}`);
+  }
+}
+function showPreview(targetKey) {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours') return;
+  if (battle.selHero == null || !battle.selSkill) return;
+  const sk = GAME_DATA.skills[battle.selSkill];
+  if (!sk) return;
+  const casterKey = 'O' + battle.selHero;
+  const caster = getUnit(casterKey);
+  if (!caster) return;
+  const toCaster = ENEMY_TARGET.includes(sk.targetType);
+  // 悬停格=范围中心（点选格即主目标位，允许空格），再按 targetPosion 展开受影响格
+  const pick = resolvePick(casterKey, sk, targetKey);
+  if (!pick) return;
+  const affected = expandTargets(casterKey, sk, [pick]);
+  // 完整范围合并外沿细红框（含无单位的空格）
+  drawSkRange(rangeCells(sk, [pick]));
+  // ---- 受影响格（含相邻/同行/整列溅射）----
+  for (const ak of affected) {
+    const t = getUnit(ak);
+    if (!t || !t.alive) continue;
+    const pv = calcPreview(casterKey, sk, ak);
+    if (!pv) continue;
+    const cell = cellEl(ak);
+    if (!cell) continue;
+    overlayPreview(cell, t, pv);
+  }
+  // ---- 释放者格（敌方向技能：自身获得护甲）----
+  if (toCaster && sk.shield > 0) {
+    overlayShGain(cellEl(casterKey), caster, caster.shield + sk.shield);
+  }
+}
+
+// 非选技状态悬停敌方：在其锁定目标（按 targetPosion 展开的每个受影响我方单位）上
+// 用与技能预览同款样式显示预期伤害/护盾变化；虚线指示线照常保留。
+// 多条瞄准命中同一单位时按 aimPreview 口径先汇总（伤害/护盾增益累加），再一次性叠加
+function showEnemyPreview(casterKey) {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+  const caster = getUnit(casterKey);
+  if (!caster || !caster.alive) return;
+  const agg = {}; // 我方单位 key -> { dmg, shGain }
+  let casterShGain = 0;
+  for (const a of battle.aims) {
+    if (a.casterKey !== casterKey) continue;
+    const sk = GAME_DATA.skills[a.skillTag];
+    if (!sk) continue;
+    const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+    const toCaster = ENEMY_TARGET.includes(sk.targetType);
+    const aliveT = a.targets.filter(tk => { const t = getUnit(tk); return t && t.alive; });
+    const affected = expandTargets(casterKey, sk, aliveT); // 与 aimPreview/enemyPhase 同口径
+    for (const ak of affected) {
+      const t = getUnit(ak);
+      if (!t || !t.alive) continue;
+      const e = agg[ak] = agg[ak] || { dmg: 0, shGain: 0 };
+      e.dmg += dmg;
+      if (!toCaster && sk.shield > 0) e.shGain += sk.shield;
+    }
+    if (toCaster && sk.shield > 0) casterShGain += sk.shield; // 敌方向护甲技：加给释放者自己
+  }
+  for (const ak of Object.keys(agg)) {
+    const t = getUnit(ak);
+    if (!t || !t.alive) continue;
+    const { dmg, shGain } = agg[ak];
+    const absorbed = Math.min(t.shield, dmg);
+    const pv = {
+      dmg, absorbed,
+      hpAfter: Math.max(0, t.hp - (dmg - absorbed)),
+      tShAfter: Math.max(0, t.shield - absorbed) + shGain,
+      lethal: dmg > 0 && t.hp - (dmg - absorbed) <= 0
+    };
+    const cell = cellEl(ak);
+    if (!cell) continue;
+    overlayPreview(cell, t, pv);
+  }
+  if (casterShGain > 0) overlayShGain(cellEl(casterKey), caster, caster.shield + casterShGain);
+}
+
+function renderDicePanel() {
+  const totals = diceTotals();
+  // 顶栏：四种格子各自的总数；全部技能解锁时呼吸切换为提示文本
+  const bar = `<div class="diceBar">${DICE_ORDER.map(c =>
+    `<span class="dGroup"><span class="ico">${DICE_ICON[c]}</span>${totals[c]}</span>`).join('')}</div>`;
+  const allSkills = battle.rolls.flatMap(r => GAME_DATA.heroes[r.tag].skills)
+    .map(st => GAME_DATA.skills[st]).filter(Boolean);
+  const allUnlocked = allSkills.length > 0 && allSkills.every(sk => skillUnlocked(sk.cost, totals));
+  $('#bStats').innerHTML = allUnlocked
+    ? `<div class="breatheSwap"><div class="layer layerA">${bar}</div>`
+      + `<div class="layer layerB allUnlockedTxt">所有技能都已解锁</div></div>`
+    : bar;
+  // 每个上场英雄一行：头像（方框+中文名替图）→ roll 出的格子 → 技能列表
+  $('#bTeamRows').innerHTML = battle.deploy.map((tag, i) => {
+    if (!tag) return emptySlotRow(i);
+    const h = GAME_DATA.heroes[tag];
+    const u = battle.ours[i]; // 对应我方战斗单位：阵亡后头像/技能置灰（骰子仍正常参与）
+    const dead = !!(u && !u.alive);
+    const roll = battle.rolls.find(r => r.idx === i);
+    const die = roll
+      ? `<span class="dieFace ${roll.locked ? 'dieLocked' : ''}" data-idx="${i}"`
+        + ` style="background:${SLOT_COLOR[roll.type] || '#777'}">${DICE_ICON[roll.type] || ''}`
+        + (roll.num > 1 ? `<span class="dieBadge">${roll.num}</span>` : '')
+        + (roll.locked ? '<span class="dieLock">🔒</span>' : '')
+        + slotTipHtml(tag, roll, `点击${roll.locked ? '解锁' : '锁定'}；金框=当前掷出面，重投时锁定面不变`) + `</span>`
+      : '';
+    const skills = h.skills.slice(0, 3).map(st => {
+      const sk = GAME_DATA.skills[st];
+      if (!sk) return '';
+      const ok = !dead && skillUnlocked(sk.cost, totals);
+      const costs = (sk.cost || []).map(([c, n]) =>
+        `<span class="cost ${totals[c] >= Number(n) ? '' : 'off'}" style="background:${SLOT_COLOR[c] || '#777'}">${n}</span>`).join('');
+      return `<span class="dSkill ${ok ? '' : 'locked'}${dead ? ' dead' : ''}" title="${sk.name}${dead ? '（已阵亡）' : ''}">`
+        + `<span class="dSkillIcon">✦</span><span class="dCosts">${costs}</span></span>`; // ✦=技能图标统一替图
+    }).join('');
+    return `<div class="dHeroRow"><span class="dAvatar${dead ? ' dead' : ''}" title="${h.name}${dead ? '（已阵亡）' : ''}">${HERO_EMOJI[tag] || (CLASS_INFO[h.cls] || ['?', '❓'])[1]}</span>${die}`
+      + `<span class="dSkills">${skills}</span></div>`;
+  }).join('');
+  // 点击骰子：锁定 / 解锁（锁定的骰子重新投骰时不变）
+  for (const el of document.querySelectorAll('#bTeamRows .dieFace')) {
+    el.addEventListener('click', () => {
+      const r = battle.rolls.find(x => x.idx === Number(el.dataset.idx));
+      if (!r) return;
+      r.locked = !r.locked;
+      const h = GAME_DATA.heroes[r.tag];
+      log(`🔒 ${h.name} 的骰子已${r.locked ? '锁定' : '解锁'}`, 'dim');
+      renderDicePanel();
+    });
+  }
+}
+
+// ================= 战斗（开战阶段·左栏）=================
+function renderFightPanel() {
+  const totals = diceTotals();
+  const bar = `<div class="diceBar">${DICE_ORDER.map(c =>
+    `<span class="dGroup"><span class="ico">${DICE_ICON[c]}</span>${totals[c]}</span>`).join('')}</div>`;
+  $('#bStats').innerHTML = bar;
+  $('#bTeamRows').innerHTML = battle.ours.map((u, i) => {
+    if (!u) return emptySlotRow(i); // 空槽位占位（与英雄行同高）
+    const h = GAME_DATA.heroes[u.tag];
+    const roll = battle.rolls.find(r => r.idx === u.idx);
+    const die = roll
+      ? `<span class="dieFace" style="background:${SLOT_COLOR[roll.type] || '#777'}">${DICE_ICON[roll.type] || ''}`
+        + (roll.num > 1 ? `<span class="dieBadge">${roll.num}</span>` : '')
+        + slotTipHtml(u.tag, roll) + `</span>`
+      : '';
+    const skills = h.skills.slice(0, 3).map(st => {
+      const sk = GAME_DATA.skills[st];
+      if (!sk) return '';
+      const ok = skillUnlocked(sk.cost, totals);
+      const costs = (sk.cost || []).map(([c, n]) =>
+        `<span class="cost ${totals[c] >= Number(n) ? '' : 'off'}" style="background:${SLOT_COLOR[c] || '#777'}">${n}</span>`).join('');
+      const pick = battle.selHero === u.idx && battle.selSkill === st ? ' pick' : '';
+      const used = u.used && u.used.has(st) ? ' used' : '';
+      return `<span class="dSkill ${ok ? '' : 'locked'}${used}${pick}" data-idx="${u.idx}" data-st="${st}"`
+        + ` title="${sk.name}${sk.useType === 'auto' ? '（自动）' : ''}${used ? '（本回合已释放）' : ''}：${sk.desc}">`
+        + `<span class="dSkillIcon">✦</span><span class="dCosts">${costs}</span></span>`;
+    }).join('');
+    const cls = (battle.selHero === u.idx ? ' selHeroRow' : '')
+      + (!u.alive ? ' deadRow' : (u.acted && battle.stage === 'ours' ? ' acted' : ''));
+    return `<div class="dHeroRow${cls}"><span class="dAvatar" title="${h.name}">${HERO_EMOJI[u.tag] || (CLASS_INFO[h.cls] || ['?', '❓'])[1]}</span>`
+      + `${die}<span class="dSkills">${skills}</span></div>`;
+  }).join('');
+  for (const el of document.querySelectorAll('#bTeamRows .dSkill')) {
+    el.addEventListener('click', () => onChipClick(Number(el.dataset.idx), el.dataset.st));
+  }
+}
+
+$('#btnDeploy').addEventListener('click', () => {
+  if (battle.phase === 'deploy') {
+    // 布阵结束 → 进入投骰子阶段
+    battle.phase = 'dice';
+    battle.rerollLeft = 2;
+    rollAllDice();
+    for (const r of battle.rolls) {
+      const h = GAME_DATA.heroes[r.tag];
+      log(`🎲 ${h.name} 掷出 ${r.roll} 点 → ${DICE_ICON[r.type] || r.type}${r.num > 1 ? ' x' + r.num : ''}`, 'dim');
+    }
+    log('🎲 投骰子阶段：右侧战场已锁定，不可再调整站位', 'good');
+    $('#btnDeploy').textContent = '开 战';
+    updateRerollBtn();
+    $('#btnReroll').classList.remove('hidden');
+    renderBattle();
+    return;
+  }
+  if (battle.phase === 'dice') {
+    // 开战 → 进入开战阶段（回合制）
+    battle.phase = 'fight';
+    $('#btnDeploy').classList.add('hidden');
+    $('#btnReroll').classList.add('hidden');
+    log('⚔️ 开 战！', 'good');
+    startOursStage();
+  }
+});
+
+// 结束行动：跳过我方剩余未释放的技能，直接进入敌方生效阶段
+$('#btnEndAct').addEventListener('click', () => {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+  log('⏭️ 结束行动：跳过我方剩余技能', 'dim');
+  battle.selHero = null; battle.selSkill = null;
+  enemyPhase();
+});
+
+function updateRerollBtn() {
+  const btn = $('#btnReroll');
+  btn.textContent = battle.rerollLeft > 0
+    ? `🎲 重新投骰（剩余${battle.rerollLeft}次）`
+    : '🎲 重新投骰（已用完）';
+  btn.disabled = battle.rerollLeft <= 0;
+}
+
+$('#btnReroll').addEventListener('click', () => {
+  if (battle.phase !== 'dice' || battle.rerollLeft <= 0) return;
+  battle.rerollLeft--;
+  rollAllDice();
+  for (const r of battle.rolls) {
+    const h = GAME_DATA.heroes[r.tag];
+    log(`🎲 ${h.name} 掷出 ${r.roll} 点 → ${DICE_ICON[r.type] || r.type}${r.num > 1 ? ' x' + r.num : ''}`, 'dim');
+  }
+  updateRerollBtn();
+  renderBattle();
+});
+
+// 开战阶段：点击技能条与战场单位格以外的任意区域 → 取消当前技能选中（点单位格=尝试选目标，不取消）
+document.addEventListener('click', e => {
+  if (battle.phase !== 'fight' || battle.stage !== 'ours' || battle.inputLock) return;
+  if (battle.selHero == null && !battle.selSkill) return;
+  if (e.target.closest('.dSkill') || e.target.closest('.bCell.occupied')) return;
+  battle.selHero = null; battle.selSkill = null;
+  renderBattle();
+});
+
+// ---- 渲染 ----
+function log(msg, cls) {
+  state.logs.push({ msg, cls });
+  if (state.logs.length > 200) state.logs.shift();
+}
+
+function render() {
+  $('#chapter').textContent = state.tier <= 10 ? `第${CN_NUM[state.tier]}章` : `第${state.tier}章`;
+  $('#mapTag').textContent = state.mapTag;
+  $('#posInfo').textContent = `当前位置：${state.current} 号格`;
+  $('#coins').textContent = state.coins;
+  $('#exp').textContent = state.exp;
+
+  const board = $('#board');
+  board.innerHTML = '';
+  const cands = state.over ? [] : candidates(state.current);
+  for (let L = 7; L >= 1; L--) {
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'rowLabel';
+    rowLabel.textContent = `L${L}`;
+    board.appendChild(rowLabel);
+    for (let c = 1; c <= 5; c++) {
+      const num = (L - 1) * 5 + c;
+      const p = state.points[num];
+      const div = document.createElement('div');
+      if (!p) { div.className = 'cell void'; board.appendChild(div); continue; }
+      const info = TYPE_INFO[p.type] || { ico: '❓', label: p.type };
+      div.className = 'cell';
+      const m = num % 5;
+      if (m === 1 || m === 0) div.style.transform = 'translateY(calc(var(--cell) * -1))';
+      else if (m === 2 || m === 4) div.style.transform = 'translateY(calc(var(--cell) * -0.5))';
+      if (p.type === 'battleBoss') div.classList.add('boss');
+      if (p.type === 'rock') div.classList.add('rock');
+      if (state.visited.has(num)) div.classList.add('visited');
+      if (num === state.current) div.classList.add('current');
+      else if (cands.includes(num)) div.classList.add('cand');
+      else if (!state.visited.has(num) && p.type !== 'rock') div.classList.add('locked');
+      div.innerHTML = `<div class="num">${num}</div><div class="ico">${info.ico}</div><div class="lbl">${info.label}</div>`;
+      if (cands.includes(num)) div.addEventListener('click', () => move(num));
+      board.appendChild(div);
+    }
+  }
+
+  const cl = $('#candList');
+  cl.innerHTML = state.over
+    ? '<div class="dim">流程已结束</div>'
+    : (cands.length
+        ? `可选：<span class="c">${cands.join('、')}</span> 号格，点击棋盘绿色格子移动`
+        : '<div class="warn">⚠️ 无路可走（走入死路格），请点"重新开始"</div>');
+
+  const lg = $('#log');
+  lg.innerHTML = state.logs.map(l => `<div class="${l.cls || ''}">${l.msg}</div>`).join('');
+  lg.scrollTop = lg.scrollHeight;
+
+  $('#legend').innerHTML = Object.values(TYPE_INFO)
+    .map(i => `<span>${i.ico} ${i.label}</span>`).join('');
+}
+
+$('#restart').addEventListener('click', () => {
+  state.over = false;
+  showSelect(); // 回到选人界面，保留已选阵容可调整后再出击
+});
+
+// ---- 启动 ----
+buildCards();
+showSelect();
+</script>
+</body>
+</html>
