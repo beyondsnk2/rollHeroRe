@@ -458,6 +458,16 @@
     text-shadow: 0 0 3px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
   }
   .fxFloat.fxShield { font-size: 15px; color: #8fc2ff; text-shadow: 1px 1px 0 #000, -1px 1px 0 #000; }
+  .fxFloat.fxAtk { font-size: 15px; color: var(--gold); text-shadow: 1px 1px 0 #000, -1px 1px 0 #000; }
+  .fxFloat.fxDebuff { font-size: 13px; color: #c98fff; text-shadow: 1px 1px 0 #000, -1px 1px 0 #000; }
+  /* 单位格状态徽标：攻击力 / 重伤 / 破碎 */
+  .uTag {
+    display: inline-block; font-size: 10px; line-height: 1.5;
+    border-radius: 3px; padding: 0 3px; margin-left: 3px; vertical-align: 1px;
+  }
+  .uTag.atkTag { color: var(--gold); border: 1px solid #6b5426; background: #2a2415; }
+  .uTag.wndTag { color: #ff9b9b; border: 1px solid #a04545; background: #2a1a1a; }
+  .uTag.shtTag { color: #c98fff; border: 1px solid #6a4a8a; background: #241a2e; }
   @keyframes fxRise {
     0% { opacity: 0; transform: translate(-50%, 6px) scale(.7); }
     18% { opacity: 1; transform: translate(-50%, 0) scale(1.12); }
@@ -598,7 +608,7 @@
 
 <script>
 /*CONFIG-DATA-START*/
-const GAME_DATA = {"initMapTier":1,"maps":[{"mapTag":"t1_Map1","tier":1},{"mapTag":"t2_Map1","tier":2},{"mapTag":"t3_Map1","tier":3},{"mapTag":"t3_Map2","tier":3},{"mapTag":"t3_Map3","tier":3}],"points":{"t1_Map1":{"1":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"2":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"3":{"type":"start","battle":null,"rewards":[],"extra":null},"4":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"5":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"6":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":"shop"},"7":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"8":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"9":{"type":"rock","battle":null,"rewards":[],"extra":null},"10":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"11":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"12":{"type":"rock","battle":null,"rewards":[],"extra":null},"13":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"14":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"15":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"16":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"17":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"18":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"19":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"20":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"21":{"type":"randWeapon","battle":null,"rewards":[["randArmor","q2"]],"extra":null},"22":{"type":"rock","battle":null,"rewards":[],"extra":null},"23":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"24":{"type":"rock","battle":null,"rewards":[],"extra":null},"25":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"27":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"28":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"29":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":"shop"},"33":{"type":"battleBoss","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null}},"t2_Map1":{"1":{"type":"rock","battle":null,"rewards":[],"extra":null},"2":{"type":"rock","battle":null,"rewards":[],"extra":null},"3":{"type":"start","battle":null,"rewards":[],"extra":null},"4":{"type":"rock","battle":null,"rewards":[],"extra":null},"5":{"type":"rock","battle":null,"rewards":[],"extra":null},"6":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"7":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"8":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"9":{"type":"rock","battle":null,"rewards":[],"extra":null},"10":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"11":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"12":{"type":"rock","battle":null,"rewards":[],"extra":null},"13":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"14":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"15":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"16":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"17":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"18":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"19":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"20":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"21":{"type":"randWeapon","battle":null,"rewards":[["randArmor","q2"]],"extra":null},"22":{"type":"rock","battle":null,"rewards":[],"extra":null},"23":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"24":{"type":"rock","battle":null,"rewards":[],"extra":null},"25":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"27":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"28":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"29":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"33":{"type":"battleBoss","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null}}},"initTeamSize":3,"initTeamList":["longswordKnight","greatswordKnight","martialArtist","shieldOfficer","blazeMage"],"heroes":{"longswordKnight":{"name":"长剑骑士","cls":"fighter","baseHp":8,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",2],["blue",2],["blue",2]],"skills":["longswordKnight_skill1","longswordKnight_skill2"]},"greatswordKnight":{"name":"大剑骑士","cls":"fighter","baseHp":9,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",3],["blue",1],["blue",1]],"skills":["greatswordKnight_skill1","greatswordKnight_skill2"]},"martialArtist":{"name":"拳刃骑士","cls":"fighter","baseHp":7,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",2],["red",2],["blue",2]],"skills":["martialArtist_skill1","martialArtist_skill2"]},"shieldOfficer":{"name":"盾卫士官","cls":"tank","baseHp":12,"baseShield":0,"slots":[["red",3],["blue",3],["blue",3],["blue",3],["blue",3],["yellow",1]],"skills":["shieldOfficer_skill1","shieldOfficer_skill2"]},"blazeMage":{"name":"爆炎术士","cls":"mage","baseHp":6,"baseShield":0,"slots":[["red",1],["red",1],["green",3],["green",3],["green",3],["green",2]],"skills":["blazeMage_skill1","blazeMage_skill2"]}},"skills":{"longswordKnight_skill1":{"name":"突击","desc":"对近战目标造成18点伤害","cost":[["red","3"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":18,"dmgShieldPara":0,"shield":0},"longswordKnight_skill2":{"name":"格挡","desc":"自动：自身获得6点护甲","cost":[["blue","2"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":6},"greatswordKnight_skill1":{"name":"横扫","desc":"对近战目标及左右相邻单位造成11点伤害","cost":[["red","4"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0;-1,0;1,0","dmg":11,"dmgShieldPara":0,"shield":0},"greatswordKnight_skill2":{"name":"连斩","desc":"自动：为自身的横扫增加连击1","cost":[["blue","1"],["green","2"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":0},"martialArtist_skill1":{"name":"乱拳连打","desc":"对近战目标造成4点伤害，连击3","cost":[["red","1"],["blue","1"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":4,"dmgShieldPara":0,"shield":0},"martialArtist_skill2":{"name":"乱拳蓄力","desc":"自动：为自身的乱拳连打增加连击1","cost":[["green","1"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":5},"shieldOfficer_skill1":{"name":"劈砍","desc":"对近战目标造成8点伤害","cost":[["red","1"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":8,"dmgShieldPara":0,"shield":0},"shieldOfficer_skill2":{"name":"援护","desc":"我方任意单位获得5点护甲","cost":[["blue","1"],["green","2"]],"skillType":"skill2","useType":"choose","targetType":"friend","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":5},"blazeMage_skill1":{"name":"大火球","desc":"对任意目标造成22点伤害","cost":[["red","1"],["green","3"]],"skillType":"skill2","useType":"choose","targetType":"any","targetPosion":"0,0","dmg":22,"dmgShieldPara":0,"shield":0},"blazeMage_skill2":{"name":"爆炎火球","desc":"对任意目标及相邻单位造成4点伤害","cost":[["green","1"]],"skillType":"skill1","useType":"choose","targetType":"any","targetPosion":"0,0;0,1;0,-1;-1,0;1,0","dmg":4,"dmgShieldPara":0,"shield":0},"wolf_skill1":{"name":"撕咬","desc":"对近战目标造成2点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"melee","targetPosion":"0,0","dmg":2,"dmgShieldPara":0,"shield":0},"bandit_skill1":{"name":"劈砍","desc":"对近战目标造成3点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"melee","targetPosion":"0,0","dmg":3,"dmgShieldPara":0,"shield":0},"banditArcher_skill1":{"name":"射击","desc":"对任意目标造成3点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"any","targetPosion":"0,0","dmg":3,"dmgShieldPara":0,"shield":0}},"battleMap":{"battle":[[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4]],"battleHigh":[[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,2],[3,3],[3,4],[3,5]]},"battleScene":{"battle1":[{"m":"wolf","x":2,"y":1},{"m":"bandit","x":4,"y":1},{"m":"banditArcher","x":1,"y":1}],"battle2":[{"m":"wolf","x":3,"y":2},{"m":"bandit","x":5,"y":2},{"m":"banditArcher","x":1,"y":2}]},"monsters":{"wolf":{"name":"狼","baseHp":4,"baseShield":0,"skills":["wolf_skill1"]},"bandit":{"name":"山贼","baseHp":6,"baseShield":0,"skills":["bandit_skill1"]},"banditArcher":{"name":"山贼弓手","baseHp":6,"baseShield":0,"skills":["banditArcher_skill1"]}}};
+const GAME_DATA = {"initMapTier":1,"maps":[{"mapTag":"t1_Map1","tier":1},{"mapTag":"t2_Map1","tier":2},{"mapTag":"t3_Map1","tier":3},{"mapTag":"t3_Map2","tier":3},{"mapTag":"t3_Map3","tier":3}],"points":{"t1_Map1":{"1":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"2":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"3":{"type":"start","battle":null,"rewards":[],"extra":null},"4":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"5":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"6":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":"shop"},"7":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"8":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"9":{"type":"rock","battle":null,"rewards":[],"extra":null},"10":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"11":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"12":{"type":"rock","battle":null,"rewards":[],"extra":null},"13":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"14":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"15":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"16":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"17":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"18":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"19":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"20":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"21":{"type":"randWeapon","battle":null,"rewards":[["randArmor","q2"]],"extra":null},"22":{"type":"rock","battle":null,"rewards":[],"extra":null},"23":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"24":{"type":"rock","battle":null,"rewards":[],"extra":null},"25":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"27":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"28":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"29":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":"shop"},"33":{"type":"battleBoss","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null}},"t2_Map1":{"1":{"type":"rock","battle":null,"rewards":[],"extra":null},"2":{"type":"rock","battle":null,"rewards":[],"extra":null},"3":{"type":"start","battle":null,"rewards":[],"extra":null},"4":{"type":"rock","battle":null,"rewards":[],"extra":null},"5":{"type":"rock","battle":null,"rewards":[],"extra":null},"6":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"7":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"8":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"9":{"type":"rock","battle":null,"rewards":[],"extra":null},"10":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"11":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"12":{"type":"rock","battle":null,"rewards":[],"extra":null},"13":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"14":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"15":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"16":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"17":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"18":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"19":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"20":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"21":{"type":"randWeapon","battle":null,"rewards":[["randArmor","q2"]],"extra":null},"22":{"type":"rock","battle":null,"rewards":[],"extra":null},"23":{"type":"coin","battle":null,"rewards":[["coin","50"]],"extra":null},"24":{"type":"rock","battle":null,"rewards":[],"extra":null},"25":{"type":"battle","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"27":{"type":"randWeapon","battle":null,"rewards":[["randWeapon","q3"]],"extra":null},"28":{"type":"battleHigh","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"29":{"type":"battle","battle":null,"rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null},"33":{"type":"battleBoss","battle":"battle1,battle2","rewards":[["exp","9"],["coin","10"],["coin","10"]],"extra":null}}},"initTeamSize":3,"initTeamList":["longswordKnight","greatswordKnight","martialArtist","shieldOfficer","blazeMage"],"heroes":{"longswordKnight":{"name":"长剑骑士","cls":"fighter","baseHp":8,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",2],["blue",2],["blue",2]],"skills":["longswordKnight_skill1","longswordKnight_skill2"]},"greatswordKnight":{"name":"大剑骑士","cls":"fighter","baseHp":9,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",3],["blue",1],["blue",1]],"skills":["greatswordKnight_skill1","greatswordKnight_skill2"]},"martialArtist":{"name":"拳刃骑士","cls":"fighter","baseHp":7,"baseShield":0,"slots":[["red",3],["red",3],["red",3],["red",2],["red",2],["blue",2]],"skills":["martialArtist_skill1","martialArtist_skill2"]},"shieldOfficer":{"name":"盾卫士官","cls":"tank","baseHp":12,"baseShield":0,"slots":[["red",3],["blue",3],["blue",3],["blue",3],["blue",3],["yellow",1]],"skills":["shieldOfficer_skill1","shieldOfficer_skill2"]},"blazeMage":{"name":"爆炎术士","cls":"mage","baseHp":6,"baseShield":0,"slots":[["red",1],["red",1],["green",3],["green",3],["green",3],["green",2]],"skills":["blazeMage_skill1","blazeMage_skill2"]}},"skills":{"longswordKnight_skill1":{"tag":"longswordKnight_skill1","name":"突击","desc":"对近战目标造成18点伤害","cost":[["red","3"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":18,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"longswordKnight_skill2":{"tag":"longswordKnight_skill2","name":"格挡","desc":"自动：自身获得6点护甲","cost":[["blue","2"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":6,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"greatswordKnight_skill1":{"tag":"greatswordKnight_skill1","name":"横扫","desc":"对近战目标及左右相邻单位造成11点伤害","cost":[["red","4"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0;-1,0;1,0","dmg":11,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"greatswordKnight_skill2":{"tag":"greatswordKnight_skill2","name":"连斩","desc":"自动：为自身的横扫增加连击1","cost":[["blue","1"],["green","2"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"greatswordKnight_skill1","modType":"combo","modVal":1,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"martialArtist_skill1":{"tag":"martialArtist_skill1","name":"乱拳连打","desc":"对近战目标造成4点伤害，连击3","cost":[["red","1"],["blue","1"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":4,"dmgShieldPara":0,"shield":0,"atk":0,"combo":3,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"martialArtist_skill2":{"tag":"martialArtist_skill2","name":"乱拳蓄力","desc":"自动：自身获得5点护甲，为乱拳连打增加连击1","cost":[["green","1"]],"skillType":"skill2","useType":"auto","targetType":"self","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":5,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"martialArtist_skill1","modType":"combo","modVal":1,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"shieldOfficer_skill1":{"tag":"shieldOfficer_skill1","name":"劈砍","desc":"对近战目标造成8点伤害","cost":[["red","1"]],"skillType":"skill1","useType":"choose","targetType":"melee","targetPosion":"0,0","dmg":8,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"shieldOfficer_skill2":{"tag":"shieldOfficer_skill2","name":"援护","desc":"我方任意单位获得5点护甲","cost":[["blue","1"],["green","2"]],"skillType":"skill2","useType":"choose","targetType":"friend","targetPosion":"0,0","dmg":0,"dmgShieldPara":0,"shield":5,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"blazeMage_skill1":{"tag":"blazeMage_skill1","name":"大火球","desc":"对任意目标造成22点伤害","cost":[["red","1"],["green","3"]],"skillType":"skill2","useType":"choose","targetType":"any","targetPosion":"0,0","dmg":22,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"blazeMage_skill2":{"tag":"blazeMage_skill2","name":"爆炎火球","desc":"对任意目标及相邻单位造成4点伤害","cost":[["green","1"]],"skillType":"skill1","useType":"choose","targetType":"any","targetPosion":"0,0;0,1;0,-1;-1,0;1,0","dmg":4,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"wolf_skill1":{"tag":"wolf_skill1","name":"撕咬","desc":"对近战目标造成2点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"melee","targetPosion":"0,0","dmg":2,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"bandit_skill1":{"tag":"bandit_skill1","name":"劈砍","desc":"对近战目标造成3点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"melee","targetPosion":"0,0","dmg":3,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0},"banditArcher_skill1":{"tag":"banditArcher_skill1","name":"射击","desc":"对任意目标造成3点伤害","cost":[],"skillType":"skill1","useType":"auto","targetType":"any","targetPosion":"0,0","dmg":3,"dmgShieldPara":0,"shield":0,"atk":0,"combo":0,"randTargetCount":0,"modSkillTag":"","modType":"","modVal":0,"usePerRound":0,"trigger":"","triggerLimit":0,"triggerSubSkill":"","subSkill":"","debuffType":"","debuffVal":0}},"battleMap":{"battle":[[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,2],[3,3],[3,4]],"battleHigh":[[1,1],[1,2],[1,3],[1,4],[1,5],[2,1],[2,2],[2,3],[2,4],[2,5],[3,1],[3,2],[3,3],[3,4],[3,5]]},"battleScene":{"battle1":[{"m":"wolf","x":2,"y":1},{"m":"bandit","x":4,"y":1},{"m":"banditArcher","x":1,"y":1}],"battle2":[{"m":"wolf","x":3,"y":2},{"m":"bandit","x":5,"y":2},{"m":"banditArcher","x":1,"y":2}]},"monsters":{"wolf":{"name":"狼","baseHp":4,"baseShield":0,"skills":["wolf_skill1"]},"bandit":{"name":"山贼","baseHp":6,"baseShield":0,"skills":["bandit_skill1"]},"banditArcher":{"name":"山贼弓手","baseHp":6,"baseShield":0,"skills":["banditArcher_skill1"]}}};
 /*CONFIG-DATA-END*/
 
 // ---- 展示用静态映射（纯视觉，非配置）----
@@ -892,6 +902,7 @@ function openBattle(p) {
     battle.foes[key] = {
       tag: r.m, name: md.name || r.m,
       hp: md.baseHp || 0, maxHp: md.baseHp || 1, shield: md.baseShield || 0, alive: true,
+      atk: 0, mods: {}, modSet: {}, uses: {}, trigUsed: {}, debuff: null,
     };
   }
   battle.deploy = [null, null, null, null, null, null];
@@ -900,8 +911,9 @@ function openBattle(p) {
   battle.ours = battle.deploy.map((tag, i) => {
     if (!tag) return null;
     const h = GAME_DATA.heroes[tag];
-    // used=本回合已释放的技能集合（各技能解锁/释放状态独立）
-    return { idx: i, tag, name: h.name, hp: h.baseHp, maxHp: h.baseHp || 1, shield: h.baseShield || 0, alive: true, acted: false, used: new Set() };
+    // uses=本回合各技能已释放次数（充能类可多次）；mods=技能强化器存量；debuff=重伤/破碎
+    return { idx: i, tag, name: h.name, hp: h.baseHp, maxHp: h.baseHp || 1, shield: h.baseShield || 0,
+      alive: true, acted: false, atk: 0, mods: {}, modSet: {}, uses: {}, trigUsed: {}, debuff: null };
   });
   battle.rewards = p.rewards;
   battle.extra = p.extra;
@@ -980,13 +992,11 @@ function finalTargets(casterKey, sk, picked) {
       const f = picked[0] || rnd(friends.filter(k => k !== casterKey));
       return f && f !== casterKey ? [f, casterKey] : [casterKey];
     }
-    case 'meleeAndRand': {
+    case 'meleeAndRand': case 'meleeAndRand2': {
       const m = picked[0] || rnd(front);
-      return m ? [m, ...randN(foes, 1, [m])] : [];
-    }
-    case 'meleeAndRand2': {
-      const m = picked[0] || rnd(front);
-      return m ? [m, ...randN(foes, 2, [m])] : [];
+      const cu = getUnit(casterKey);
+      const n = (sk.randTargetCount || 1) + (modsOf(cu, sk.tag).randTarget || 0);
+      return m ? [m, ...randN(foes, n, [m])] : [];
     }
     case 'selfAndfriendMelee': return [casterKey, ...front.filter(k => k !== casterKey)];
   }
@@ -1026,16 +1036,43 @@ function expandTargets(casterKey, sk, targets) {
   return rangeCells(sk, targets).filter(k => { const u = getUnit(k); return u && u.alive; });
 }
 
+// ---- 技能强化 / 充能 / 伤害口径 ----
+const ZERO_MODS = { combo: 0, randTarget: 0, charge: 0 };
+function modsOf(u, skillTag) { return (u && u.mods && u.mods[skillTag]) || ZERO_MODS; }
+// 技能实际连击数 = 配置 combo + 强化器存量
+function comboOf(caster, sk) { return (sk.combo || 0) + (modsOf(caster, sk.tag).combo || 0); }
+// 伤害 = dmg + dmgShieldPara × 释放者当前护甲 + 释放者攻击力（护甲只加成不消耗）
+function calcDmg(caster, sk) {
+  return (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0) + (caster.atk || 0);
+}
+// 技能本回合可释放次数 = usePerRound(默认1) + 充能强化存量
+function maxUses(skillTag, u) {
+  const sk = GAME_DATA.skills[skillTag];
+  return ((sk && sk.usePerRound) || 1) + (modsOf(u, skillTag).charge || 0);
+}
+function usesOf(u, skillTag) { return (u && u.uses && u.uses[skillTag]) || 0; }
+
 // ---- 结算 ----
-function applyDamage(key, dmg) {
+// 伤害结算：叠加重伤（每次受伤+N）与破碎（下N次受伤+N，逐次消耗），返回是否击杀
+function applyDamage(key, dmg, killerKey) {
   const u = getUnit(key);
-  const absorbed = Math.min(u.shield, dmg);
+  let bonus = 0; const tags = [];
+  if (u.debuff) {
+    if (u.debuff.wound > 0) { bonus += u.debuff.wound; tags.push('重伤+' + u.debuff.wound); }
+    if (u.debuff.shatterStacks > 0) {
+      bonus += u.debuff.shatterVal; u.debuff.shatterStacks--;
+      tags.push('破碎+' + u.debuff.shatterVal);
+    }
+  }
+  const total = dmg + bonus;
+  const absorbed = Math.min(u.shield, total);
   u.shield -= absorbed;
-  u.hp = Math.max(0, u.hp - (dmg - absorbed));
-  log(`  → ${u.name} 受到 ${dmg} 点伤害（护甲吸收 ${absorbed}）❤${u.hp}${u.shield ? ' 🛡' + u.shield : ''}`, 'warn');
+  u.hp = Math.max(0, u.hp - (total - absorbed));
+  log(`  → ${u.name} 受到 ${total} 点伤害${tags.length ? '（' + tags.join('，') + '）' : ''}`
+    + `（护甲吸收 ${absorbed}）❤${u.hp}${u.shield ? ' 🛡' + u.shield : ''}`, 'warn');
   if (u.hp <= 0 && u.alive) {
     u.alive = false;
-    log(`  ☠️ ${u.name} 阵亡`, 'warn');
+    log(`  ☠️ ${u.name} 阵亡${killerKey ? `（被 ${getUnit(killerKey).name} 击杀）` : ''}`, 'warn');
     battle.dying[key] = Date.now() + 1000; // 动画期内保留格子渲染
     setTimeout(() => {
       if (battle.dying[key] && Date.now() >= battle.dying[key]) {
@@ -1043,7 +1080,9 @@ function applyDamage(key, dmg) {
         if (battle.phase === 'fight' && battle.active) renderBattle();
       }
     }, 1100);
+    return true;
   }
+  return false;
 }
 function checkEnd() {
   if (!battle.active) return true;
@@ -1051,22 +1090,15 @@ function checkEnd() {
   if (!aliveKeys('ours').length) { endBattle(false); return true; }
   return false;
 }
-function releaseSkill(casterKey, skillTag, picked, lockedTargets) {
-  const sk = GAME_DATA.skills[skillTag];
-  if (!sk) return false;
+// ---- 效果结算核心：展开范围 → 连击伤害 → 护甲 → 攻击力 → debuff → 强化器 ----
+// targets=主目标集合（choose=点选/自动解析；sub inherit=主技能目标）；返回 { kills:[被击杀key] }
+function applySkillEffects(casterKey, sk, targets) {
   const caster = getUnit(casterKey);
-  // 敌方瞄准生效时传 lockedTargets（开战时锁定的目标，不重选）；其余按规则解析
-  const targets = lockedTargets || finalTargets(casterKey, sk, picked || []);
-  if (!targets.length) {
-    log(`⚠️ 技能 ${skillTag}（${sk.name}）无法选定目标，请检查配置`, 'warn');
-    return false;
-  }
-  log(`✦ ${caster.name} 释放【${sk.name}】`, 'good');
   // targetPosion 展开：主目标 → 全部受影响格子（相邻/同行/整列等）
   const affected = expandTargets(casterKey, sk, targets);
   if (!affected.length) {
     log(`  → 【${sk.name}】波及范围内没有存活单位，落空`, 'dim');
-    return false;
+    return { affected: [], kills: [] };
   }
   if (affected.length !== targets.length || affected.some(k => !targets.includes(k)))
     log(`  → 波及 ${affected.length} 个单位：${affected.map(k => getUnit(k).name).join('、')}`, 'dim');
@@ -1074,12 +1106,22 @@ function releaseSkill(casterKey, skillTag, picked, lockedTargets) {
   const snap = k => { const v = getUnit(k); if (v && !battle.fxPrev[k]) battle.fxPrev[k] = { hp: v.hp, sh: v.shield }; };
   affected.forEach(snap);
   if (sk.shield > 0 && ENEMY_TARGET.includes(sk.targetType)) snap(casterKey);
-  // 伤害 = dmg + dmgShieldPara * 释放者当前护甲（护甲只作加成，不消耗）
-  const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
-  if (dmg > 0) for (const k of affected) {
-    applyDamage(k, dmg);
-    battle.fx.push({ key: k, text: '-' + dmg, cls: 'fxDmg', hit: true });
+  // 伤害：连击 = 额外命中 combo 次，每次独立结算，目标死亡即止
+  const base = calcDmg(caster, sk);
+  const hits = 1 + comboOf(caster, sk);
+  const kills = [];
+  if (base > 0) {
+    if (hits > 1) log(`  → 连击：共命中 ${hits} 次`, 'dim');
+    for (let h = 0; h < hits; h++) {
+      for (const k of affected) {
+        const u = getUnit(k);
+        if (!u || !u.alive) continue; // 已阵亡：后续命中落空
+        if (applyDamage(k, base, casterKey)) kills.push(k);
+        battle.fx.push({ key: k, text: '-' + base, cls: 'fxDmg', hit: true });
+      }
+    }
   }
+  // 护甲：敌方向技加给释放者，我方向技加给目标
   if (sk.shield > 0) {
     if (ENEMY_TARGET.includes(sk.targetType)) {
       caster.shield += sk.shield;
@@ -1094,8 +1136,28 @@ function releaseSkill(casterKey, skillTag, picked, lockedTargets) {
       }
     }
   }
-  // 无数值效果（连击/蓄力类，效果未实装）也要留痕，避免看起来"释放了但什么都没发生"
-  if (dmg <= 0 && sk.shield <= 0) log(`  → 效果：${sk.desc}（连击类效果未实装，仅记录）`, 'dim');
+  // 攻击力：受影响的每个目标永久+N（本局有效）
+  if (sk.atk > 0) {
+    for (const k of affected) {
+      const u = getUnit(k);
+      if (!u || !u.alive) continue;
+      u.atk = (u.atk || 0) + sk.atk;
+      battle.fx.push({ key: k, text: '+' + sk.atk + ' ⚔', cls: 'fxAtk' });
+      log(`  → ${u.name} 攻击力+${sk.atk}（⚔${u.atk}）`, 'good');
+    }
+  }
+  // 负面状态：重伤 / 破碎（本回合内有效，回合开始时清除）
+  if (sk.debuffType) {
+    for (const k of affected) {
+      const u = getUnit(k);
+      if (!u || !u.alive) continue;
+      applyDebuff(k, sk.debuffType, sk.debuffVal);
+    }
+  }
+  // 技能强化器：修改本单位另一技能的属性（combo/randTarget 只生效一次，charge 逐次累积）
+  if (sk.modSkillTag && sk.modType) applyMod(caster, sk);
+  if (base <= 0 && sk.shield <= 0 && sk.atk <= 0 && !sk.debuffType && !(sk.modSkillTag && sk.modType))
+    log(`  → 效果：${sk.desc}（无数值效果，仅记录）`, 'dim');
   // 施法晃动：释放者 + 全部受影响单位格同步抖一下（已标记受击闪动的格子不重复叠）
   const castKeys = new Set([casterKey, ...affected]);
   for (const k of castKeys) {
@@ -1103,6 +1165,103 @@ function releaseSkill(casterKey, skillTag, picked, lockedTargets) {
     if (e) e.cast = true;
     else battle.fx.push({ key: k, cast: true });
   }
+  return { affected, kills };
+}
+
+// 负面状态：重伤=每次受到伤害+N；破碎=下 N 次受到伤害+N（逐次消耗），均到本回合结束
+function applyDebuff(key, type, val) {
+  const u = getUnit(key);
+  const v = val || 1;
+  u.debuff = u.debuff || { wound: 0, shatterStacks: 0, shatterVal: 0 };
+  if (type === 'wound') {
+    u.debuff.wound += v;
+    battle.fx.push({ key, text: '重伤+' + v, cls: 'fxDebuff' });
+    log(`  → ${u.name} 被施加重伤${v}（每次受伤+${v}，本回合内）`, 'warn');
+  } else if (type === 'shatter') {
+    u.debuff.shatterStacks += v;
+    u.debuff.shatterVal = Math.max(u.debuff.shatterVal, v);
+    battle.fx.push({ key, text: '破碎' + v, cls: 'fxDebuff' });
+    log(`  → ${u.name} 被施加破碎${v}（接下来 ${v} 次受伤+${v}，本回合内）`, 'warn');
+  }
+}
+
+// 技能强化器：combo/randTarget 每单位对同一目标技只生效一次（auto 每回合重放不叠加）；
+// charge（充能）逐次累积（击杀触发类每触发一次 +1）
+function applyMod(caster, sk) {
+  const m = caster.mods[sk.modSkillTag] = caster.mods[sk.modSkillTag]
+    || { combo: 0, randTarget: 0, charge: 0 };
+  const v = sk.modVal || 0;
+  const targetSk = GAME_DATA.skills[sk.modSkillTag];
+  const cname = { combo: '连击', randTarget: '随机目标', charge: '充能' }[sk.modType] || sk.modType;
+  if (sk.modType === 'charge') {
+    m.charge = (m.charge || 0) + v;
+  } else {
+    caster.modSet = caster.modSet || {};
+    const key = sk.modSkillTag + ':' + sk.modType;
+    if (caster.modSet[key]) return; // 已生效过，跳过
+    caster.modSet[key] = true;
+    m[sk.modType] = (m[sk.modType] || 0) + v;
+  }
+  log(`  → 强化【${targetSk ? targetSk.name : sk.modSkillTag}】${cname}+${v}`, 'good');
+}
+
+// 子技能执行：inherit=继承主技能目标，其余按通用规则解析；未填 targetType 默认自身
+function runSubSkill(casterKey, subTag, mainTargets) {
+  const sub = GAME_DATA.skills[subTag];
+  if (!sub) { log(`  ⚠️ 子技能 ${subTag} 在配置中不存在，跳过`, 'warn'); return []; }
+  const alive = (mainTargets || []).filter(k => { const t = getUnit(k); return t && t.alive; });
+  let targets;
+  if (sub.targetType === 'inherit') targets = alive;
+  else if (sub.targetType) targets = finalTargets(casterKey, sub, []);
+  else targets = [casterKey];
+  if (!targets.length) { log(`  ↳ 子技能【${sub.name}】无有效目标，跳过`, 'dim'); return []; }
+  log(`  ↳ 子技能【${sub.name}】生效`, 'dim');
+  const { kills } = applySkillEffects(casterKey, sub, targets);
+  let all = [...kills];
+  if (sub.subSkill) all = all.concat(runSubSkill(casterKey, sub.subSkill, targets));
+  return all;
+}
+
+// 击杀触发：每次击杀后检查释放者所有带 trigger 的技能，受 triggerLimit 每回合上限约束；
+// firstKillInRound 语义同 kill+上限1；触发产生的击杀继续递归检查
+function processKillTriggers(casterKey, killKeys) {
+  if (!killKeys || !killKeys.length || !battle.active) return;
+  const u = getUnit(casterKey);
+  if (!u || !u.alive) return;
+  const skills = sideOf(casterKey) === 'ours'
+    ? GAME_DATA.heroes[u.tag].skills
+    : (GAME_DATA.monsters[u.tag] || {}).skills || [];
+  for (const st of skills) {
+    const sk = GAME_DATA.skills[st];
+    if (!sk || !sk.trigger || !sk.triggerSubSkill) continue;
+    const limit = sk.triggerLimit > 0 ? sk.triggerLimit : Infinity;
+    // 每次击杀尝试触发一次（被击杀者=子技能继承目标），受 triggerLimit 每回合上限约束
+    for (const killKey of killKeys) {
+      const used = u.trigUsed[st] || 0;
+      if (used >= limit) break;
+      u.trigUsed[st] = used + 1;
+      log(`⚡ ${u.name} 触发【${sk.name}】的击杀效果`, 'good');
+      const subKills = runSubSkill(casterKey, sk.triggerSubSkill, [killKey]);
+      if (subKills.length) processKillTriggers(casterKey, subKills);
+    }
+  }
+}
+
+function releaseSkill(casterKey, skillTag, picked, lockedTargets) {
+  const sk = GAME_DATA.skills[skillTag];
+  if (!sk) return false;
+  const caster = getUnit(casterKey);
+  // 敌方瞄准生效时传 lockedTargets（开战时锁定的目标，不重选）；其余按规则解析
+  const targets = lockedTargets || finalTargets(casterKey, sk, picked || []);
+  if (!targets.length) {
+    log(`⚠️ 技能 ${skillTag}（${sk.name}）无法选定目标，请检查配置`, 'warn');
+    return false;
+  }
+  log(`✦ ${caster.name} 释放【${sk.name}】`, 'good');
+  const { kills } = applySkillEffects(casterKey, sk, targets);
+  // 主技能结算后必然执行的子技能（与触发无关）
+  if (sk.subSkill) processKillTriggers(casterKey, runSubSkill(casterKey, sk.subSkill, targets).concat(kills));
+  else if (kills.length) processKillTriggers(casterKey, kills);
   renderBattle();
   const deaths = Object.keys(battle.dying).length;
   if (deaths && battle.active) setTimeout(checkEnd, 1000); // 先播完死亡动画再判定胜负
@@ -1149,7 +1308,7 @@ function autoReleaseSide(side) {
       if (!skillUnlocked(sk.cost, diceTotals())) continue;
       if (releaseSkill(key, st, []) && side === 'ours') {
         const u = getUnit(key);
-        if (u && u.used) u.used.add(st); // auto 释放同样标记已用，左栏图标同步置灰
+        if (u && u.uses) u.uses[st] = (u.uses[st] || 0) + 1; // auto 释放同样计数，左栏图标同步置灰
       }
     }
   }
@@ -1157,11 +1316,11 @@ function autoReleaseSide(side) {
 
 function usableChooseSkills(u) {
   const totals = diceTotals();
-  const used = u.used || new Set();
   return GAME_DATA.heroes[u.tag].skills.filter(st => {
     const sk = GAME_DATA.skills[st];
-    // 各技能独立：本回合未释放过 + useType=choose + 骰子解锁
-    return sk && sk.useType === 'choose' && !used.has(st) && skillUnlocked(sk.cost, totals);
+    // 各技能独立：本回合剩余次数>0（充能可多次）+ useType=choose + 骰子解锁
+    return sk && sk.useType === 'choose' && usesOf(u, st) < maxUses(st, u)
+      && skillUnlocked(sk.cost, totals);
   });
 }
 function hasUsableChoose(u) { return usableChooseSkills(u).length > 0; }
@@ -1171,7 +1330,9 @@ function startOursStage() {
   battle.inputLock = false;
   battle.selHero = null; battle.selSkill = null;
   battle.aims = []; // 每回合重瞄：先清除上一回合的瞄准与预览
-  for (const u of battle.ours) if (u) { u.acted = false; u.used = new Set(); } // 每回合重置
+  // 每回合重置：行动/技能次数/触发计数清零，重伤/破碎到回合结束即清除
+  for (const u of battle.ours) if (u) { u.acted = false; u.uses = {}; u.trigUsed = {}; u.debuff = null; }
+  for (const f of Object.values(battle.foes)) f.debuff = null;
   log(`—— 第 ${battle.turn} 回合 · 我方行动 ——`, 'dim');
   autoReleaseSide('ours'); // 我方 auto 技能回合开始自动释放
   if (!battle.active) return;
@@ -1208,15 +1369,21 @@ function aimPreview() {
   for (const a of battle.aims) {
     const caster = getUnit(a.casterKey), sk = GAME_DATA.skills[a.skillTag];
     if (!caster || !caster.alive || !sk) continue;
-    const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+    const per = calcDmg(caster, sk);
+    const hits = 1 + comboOf(caster, sk);
     const toCaster = ENEMY_TARGET.includes(sk.targetType);
     // 与 releaseSkill 同口径：主目标按 targetPosion 展开成受影响单位
     const affected = expandTargets(a.casterKey, sk, a.targets.filter(tk => { const t = getUnit(tk); return t && t.alive; }));
     for (const tk of affected) {
       const t = getUnit(tk);
       if (!t || !t.alive) continue;
+      let d = per;
+      if (t.debuff) { // 目标重伤/破碎加成（破碎按未消耗估算）
+        if (t.debuff.wound > 0) d += t.debuff.wound;
+        if (t.debuff.shatterStacks > 0) d += t.debuff.shatterVal;
+      }
       const e = pv[tk] = pv[tk] || { dmg: 0, shGain: 0 };
-      e.dmg += dmg;
+      e.dmg += d * hits;
       if (!toCaster && sk.shield > 0) e.shGain += sk.shield;
     }
     if (toCaster && sk.shield > 0) { // 敌方向护甲技：预览加在释放者自己身上
@@ -1308,9 +1475,9 @@ function onChipClick(idx, st) {
   const u = battle.ours[idx];
   if (!u || !u.alive) return;
   const sk = GAME_DATA.skills[st];
-  // 各技能独立：仅拦截本回合已释放过的那个技能，其余技能仍可继续选中
+  // 各技能独立：仅拦截本回合已用完次数的那个技能，其余技能仍可继续选中
   if (!sk || sk.useType !== 'choose' || !skillUnlocked(sk.cost, diceTotals())) return;
-  if (u.used && u.used.has(st)) { log(`${u.name} 本回合已释放过【${sk.name}】`, 'dim'); return; }
+  if (usesOf(u, st) >= maxUses(st, u)) { log(`${u.name} 本回合【${sk.name}】次数已用完`, 'dim'); return; }
   if (battle.selHero === idx && battle.selSkill === st) {
     // 再点同一技能 → 取消选中
     battle.selHero = null; battle.selSkill = null;
@@ -1332,7 +1499,7 @@ function doRelease(targetKey) {
   if (!pick) return;
   releaseSkill('O' + battle.selHero, st, [pick]);
   if (!battle.active) return;
-  if (u.used) u.used.add(st); // 只标记这一个技能已释放
+  if (u.uses) u.uses[st] = (u.uses[st] || 0) + 1; // 只计数这一个技能
   u.acted = !hasUsableChoose(u); // 剩余无可用选择技时才算行动完
   battle.selHero = null; battle.selSkill = null;
   if (battle.ours.every(x => !x || !x.alive || x.acted)) { enemyPhase(); return; }
@@ -1390,7 +1557,20 @@ function phaseHint() {
     + 'auto 技能在瞄准之前自动释放（找不到目标 / 效果异常会记入日志）；无可用技能的单位自动跳过，'
     + '也可点【结束行动】直接跳过剩余技能进入敌方阶段。'
     + '③ 我方全部行动完后，敌方按瞄准顺序（前排先）依次生效：用锁定目标释放，目标已阵亡则落空。'
-    + '④ 敌方行动完进入下一回合，重新投骰子。一方全灭后战斗结束。';
+    + '④ 敌方行动完进入下一回合，重新投骰子。一方全灭后战斗结束。'
+    + '效果口径：伤害=dmg+护甲系数×释放者当前护甲+释放者攻击力（⚔徽标）；'
+    + '连击=额外命中同伤害次数；充能技能每回合可释放多次（tooltip 显示 已用/上限）；'
+    + '重伤=每次受伤+N、破碎=接下来 N 次受伤+N（均到本回合结束）；击杀可触发技能追加效果。';
+}
+
+// 单位格状态徽标：攻击力 / 重伤 / 破碎（开战中显示）
+function unitBadges(u) {
+  if (!u) return '';
+  let s = '';
+  if (u.atk > 0) s += `<span class="uTag atkTag">⚔${u.atk}</span>`;
+  if (u.debuff && u.debuff.wound > 0) s += `<span class="uTag wndTag">重伤${u.debuff.wound}</span>`;
+  if (u.debuff && u.debuff.shatterStacks > 0) s += `<span class="uTag shtTag">破碎${u.debuff.shatterStacks}</span>`;
+  return s;
 }
 
 function renderBattle() {
@@ -1425,7 +1605,7 @@ function renderBattle() {
         const md = GAME_DATA.monsters[m] || { name: m, baseHp: '?' };
         const hpLine = (battle.phase === 'fight' && f) ? hpBarHtml(f, '#d9534f', pvFor(key)) : '';
         div.innerHTML = `<span class="coord">${x},${y}</span>${hpLine}`
-          + `<span class="ico">${MONSTER_EMOJI[m] || '👹'}</span><span class="mname">${md.name}</span>`;
+          + `<span class="ico">${MONSTER_EMOJI[m] || '👹'}</span><span class="mname">${md.name}</span>${unitBadges(f)}`;
       } else if (f && !f.alive && battle.dying[key]) {
         div.classList.add('occupied', 'dying'); // 阵亡动画期内保留展示
         div.dataset.key = key; // 供反馈（飘字/条过渡）定位
@@ -1461,7 +1641,7 @@ function renderBattle() {
         const pv = battle.phase === 'fight' ? pvFor('O' + idx) : null;
         const hpLine = (battle.phase === 'fight' && u) ? hpBarHtml(u, '#4caf78', pv) : '';
         div.innerHTML = `<span class="coord">${r + 1},${c}</span>${hpLine}`
-          + `<span class="ico">${HERO_EMOJI[tag] || (CLASS_INFO[h.cls] || ['?', '❓'])[1]}</span><span class="mname">${h.name}</span>`;
+          + `<span class="ico">${HERO_EMOJI[tag] || (CLASS_INFO[h.cls] || ['?', '❓'])[1]}</span><span class="mname">${h.name}</span>${unitBadges(u)}`;
         if (pv && pv.lethal) div.insertAdjacentHTML('beforeend', '<span class="aimDeath">☠</span>'); // 死亡预告
         if (battle.phase === 'deploy') {
           div.draggable = true;
@@ -1754,10 +1934,16 @@ function drawAimLines(casterKey) {
 }
 
 // 按 releaseSkill 同款口径结算预览数值（不改真实状态）
+// 伤害含连击乘算与目标重伤/破碎加成（破碎按未消耗估算）
 function calcPreview(casterKey, sk, targetKey) {
   const caster = getUnit(casterKey), t = getUnit(targetKey);
   if (!caster || !t) return null;
-  const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+  let per = calcDmg(caster, sk);
+  if (t.debuff) {
+    if (t.debuff.wound > 0) per += t.debuff.wound;
+    if (t.debuff.shatterStacks > 0) per += t.debuff.shatterVal;
+  }
+  const dmg = per * (1 + comboOf(caster, sk));
   const toCaster = ENEMY_TARGET.includes(sk.targetType); // 敌方向技能：护甲加给释放者
   const absorbed = Math.min(t.shield, dmg);
   const hpAfter = Math.max(0, t.hp - (dmg - absorbed));
@@ -1881,15 +2067,21 @@ function showEnemyPreview(casterKey) {
     if (a.casterKey !== casterKey) continue;
     const sk = GAME_DATA.skills[a.skillTag];
     if (!sk) continue;
-    const dmg = (sk.dmg || 0) + (sk.dmgShieldPara || 0) * (caster.shield || 0);
+    const per = calcDmg(caster, sk);
+    const hits = 1 + comboOf(caster, sk);
     const toCaster = ENEMY_TARGET.includes(sk.targetType);
     const aliveT = a.targets.filter(tk => { const t = getUnit(tk); return t && t.alive; });
     const affected = expandTargets(casterKey, sk, aliveT); // 与 aimPreview/enemyPhase 同口径
     for (const ak of affected) {
       const t = getUnit(ak);
       if (!t || !t.alive) continue;
+      let d = per;
+      if (t.debuff) {
+        if (t.debuff.wound > 0) d += t.debuff.wound;
+        if (t.debuff.shatterStacks > 0) d += t.debuff.shatterVal;
+      }
       const e = agg[ak] = agg[ak] || { dmg: 0, shGain: 0 };
-      e.dmg += dmg;
+      e.dmg += d * hits;
       if (!toCaster && sk.shield > 0) e.shGain += sk.shield;
     }
     if (toCaster && sk.shield > 0) casterShGain += sk.shield; // 敌方向护甲技：加给释放者自己
@@ -1985,9 +2177,11 @@ function renderFightPanel() {
       const costs = (sk.cost || []).map(([c, n]) =>
         `<span class="cost ${totals[c] >= Number(n) ? '' : 'off'}" style="background:${SLOT_COLOR[c] || '#777'}">${n}</span>`).join('');
       const pick = battle.selHero === u.idx && battle.selSkill === st ? ' pick' : '';
-      const used = u.used && u.used.has(st) ? ' used' : '';
+      const usesN = usesOf(u, st), maxN = maxUses(st, u);
+      const used = usesN >= maxN ? ' used' : '';
+      const useTip = maxN > 1 ? `（已用 ${usesN}/${maxN}）` : (used ? '（本回合已用完）' : '');
       return `<span class="dSkill ${ok ? '' : 'locked'}${used}${pick}" data-idx="${u.idx}" data-st="${st}"`
-        + ` title="${sk.name}${sk.useType === 'auto' ? '（自动）' : ''}${used ? '（本回合已释放）' : ''}：${sk.desc}">`
+        + ` title="${sk.name}${sk.useType === 'auto' ? '（自动）' : ''}${useTip}：${sk.desc}">`
         + `<span class="dSkillIcon">✦</span><span class="dCosts">${costs}</span></span>`;
     }).join('');
     const cls = (battle.selHero === u.idx ? ' selHeroRow' : '')

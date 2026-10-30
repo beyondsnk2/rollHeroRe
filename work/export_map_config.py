@@ -57,12 +57,35 @@ def load_data():
             "baseShield": row[17] or 0, "slots": slots, "skills": skills,
         }
 
-    # skill: tag -> 卡面展示 + 战斗字段（只导被英雄/怪物引用的）
+    # skill: tag -> 卡面展示 + 战斗字段
+    # 只导被英雄/怪物引用的主技能 + 其 subSkill/triggerSubSkill 引用的子技能行（闭包）
+    rows_by_tag = {}
+    for row in wb["skill"].iter_rows(min_row=2, values_only=True):
+        if row and row[0]:
+            rows_by_tag[str(row[0])] = row
     need_skills = {s for h in heroes.values() for s in h["skills"]}
     need_skills |= {s for m in monsters.values() for s in m["skills"]}
+    pending = list(need_skills)
+    while pending:
+        row = rows_by_tag.get(pending.pop())
+        if not row:
+            continue
+        for ref in (row[22], row[23]):  # triggerSubSkill / subSkill
+            if ref and str(ref) not in need_skills:
+                need_skills.add(str(ref))
+                pending.append(str(ref))
+
+    def num(v):
+        if v is None or v == "":
+            return 0
+        try:
+            return float(v) if isinstance(v, str) and "." in v else int(v)
+        except (TypeError, ValueError):
+            return 0
+
     skills = {}
-    for row in wb["skill"].iter_rows(min_row=2, values_only=True):
-        if not row or not row[0] or row[0] not in need_skills:
+    for tag, row in rows_by_tag.items():
+        if tag not in need_skills:
             continue
         cost = []
         for part in str(row[5] or "").split(";"):
@@ -72,14 +95,29 @@ def load_data():
             k, _, v = part.partition(",")
             if k:
                 cost.append([k, v])
-        skills[row[0]] = {
+        skills[tag] = {
+            "tag": tag,
             "name": row[2], "desc": row[3] or "", "cost": cost,
-            "skillType": row[4], "useType": row[7] or "choose",
+            "skillType": str(row[4] or ""), "useType": row[7] or "choose",
             "targetType": row[8] or "",
             "targetPosion": str(row[9] or ""),  # 受影响格子偏移 "dcol,drow;…"，相对每个最终目标展开
-            "dmg": row[10] or 0,
-            "dmgShieldPara": row[11] or 0,
-            "shield": row[12] or 0,
+            "dmg": num(row[10]),
+            "dmgShieldPara": num(row[11]),
+            "shield": num(row[12]),
+            # ---- config_v2 新增字段（N-Z）----
+            "atk": num(row[13]),              # 给目标加的攻击力（永久，本局有效）
+            "combo": num(row[14]),            # 本技能额外命中次数
+            "randTargetCount": num(row[15]),  # meleeAndRand 系列随机目标数，默认 1
+            "modSkillTag": str(row[16] or ""),  # 非空 = 技能强化器行
+            "modType": str(row[17] or ""),    # combo / randTarget / charge
+            "modVal": num(row[18]),
+            "usePerRound": num(row[19]),      # 每回合可用次数，默认 1
+            "trigger": str(row[20] or ""),    # kill / firstKillInRound
+            "triggerLimit": num(row[21]),
+            "triggerSubSkill": str(row[22] or ""),
+            "subSkill": str(row[23] or ""),   # 主技能结算后必然执行
+            "debuffType": str(row[24] or ""), # wound / shatter
+            "debuffVal": num(row[25]),
         }
 
     # map: mapTag 向下填充，去重得到 (mapTag, tier)

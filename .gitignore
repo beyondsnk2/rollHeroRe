@@ -12,3 +12,5 @@ work/_tmp_check.js
 config/新建 XLS 工作表.xls
 # 卡图识别时的临时裁剪图（放大后读图用，非素材）
 work/t[0-9]*_*.png
+# Excel 打开时的锁文件
+config/~$*.xlsx
